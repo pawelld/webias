@@ -1,0 +1,277 @@
+<!--!
+Copyright 2013 Pawel Daniluk, Bartek Wilczynski
+
+This file is part of WeBIAS.
+
+WeBIAS is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as 
+published by the Free Software Foundation, either version 3 of 
+the License, or (at your option) any later version.
+
+WeBIAS is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public 
+License along with WeBIAS. If not, see 
+<http://www.gnu.org/licenses/>.
+-->
+
+<html xmlns:py="http://genshi.edgewall.org/" encoding="utf-8"
+xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="base.genshi" />
+  <head>
+    <title>${app}</title>
+    <link rel="StyleSheet" href="${media}/form.css" type="text/css" media="all" />
+  </head>
+  <body>
+    <h1>${app} input form on ${server} server.</h1>
+    <div id="center">
+      <p name="description">${Markup(description)}</p>
+	  
+		<script>
+			$(document).ready(function(){
+				$(".old_file button").each(function(){
+					$(this).click(function(){
+						olddiv=$(event.target.parentNode);
+						newdiv=olddiv.next();
+						p=olddiv.parent();
+						h=p.height();
+						p.height(h);
+						olddiv.slideUp('normal', function(){
+							olddiv.detach();
+						});
+						newdiv.slideDown('normal');
+					});
+				});
+			});
+		</script>
+	  <form name="BIAS form" enctype="multipart/form-data" action="${root}/${app}/submit" method="post"> <div class="form">
+		<?python
+			import genshi.template.eval 
+			import field
+			def find_func(suffix, cl):
+				res=value_of('field_'+cl.__name__+suffix)
+
+				if res==None:
+					if cl.__bases__:
+						return find_func(suffix, cl.__bases__[0])
+					else:
+						return None
+				else:
+					return res
+
+			def find_field_func(cl):
+				return find_func('',cl)
+
+			def find_label_func(cl):
+				return find_func('_label',cl)
+
+			def find_component_func(cl):
+				return find_func('_component',cl)
+
+			def find_class_func(cl):
+				return find_func('_class',cl)
+				
+
+			def field_Field_class(el):
+				return "element"
+
+			def field_Email_class(el):
+				return login==None and "element" or "element-skip"
+		?>
+
+		<py:def function="set_of_elements(elts)">
+			<?python
+				class expando(object): 
+					pass
+				first=expando()
+				first.val=True
+
+				def first_cls(cls):
+					if not first.val or 'element-skip' in cls.split(' '):
+						return ''
+					else:
+						first.val=False
+						return ' element-first'
+			?>
+			<div py:for="el in elts" py:with="label_f=find_label_func(el.__class__); component_f=find_component_func(el.__class__); field_f=find_field_func(el.__class__); cls=find_class_func(el.__class__)(el);" class="${cls+first_cls(cls)}">
+				<py:choose>
+					<py:when test="field_f==None">
+						${label_f(el)}${component_f(el)}
+					</py:when>
+					<py:otherwise>
+						${field_f(el)}
+					</py:otherwise>
+				</py:choose>
+			</div>
+		</py:def>
+
+		<span py:def="opt(el)" class="star" py:if="not el.isOptional()">*</span>
+
+		<a py:def="help(el)" py:if="hasattr(el,'help')" href="${el.app().setup.help_url.PCDATA}${el.help}" target="_blank"><img src="${media}/help.png"/></a>
+
+		<div py:def="field_Field_label(el)" class="label">
+			${str(el.name)}:${opt(el)}${help(el)}
+		</div>
+		<div py:def="field_Field_component(el)" class="component">
+        	<input name="${el.getFormName()}" length="10" value="${el.getDefault(query)}" py:attrs="{'title': getattr(el, 'tooltip',None)}"/>
+		</div>
+
+		<div py:def="field_Checkbox_component(el)" class="component">
+        	<input type="checkbox" name="${el.getFormName()}" value="${el.getDefault(query)}" py:attrs="{'title': getattr(el, 'tooltip',None)}"/>
+		</div>
+
+
+		<div py:def="field_File_component(el)" class="component" py:with="pf=el.getDefault(query); fn=el.getFormName()">
+			<py:if test="pf!=None">
+				<div class="old_file">
+					<button type="button">Remove</button>
+					<a href="${root}/${query.req.app_id}/file?uuid=${query.req.uuid}&amp;pathname=${el.getFormName()}/${pf.name}">${pf.name}</a>
+					<input type="hidden" name="${el.getFormName()}/old" value="${pf.id}"/>
+				</div>
+				<div class="new_file" style="display:none;">
+					<input type="file" name="${el.getFormName()}" py:attrs="{'title': getattr(el, 'tooltip',None)}"/>
+				</div>
+			</py:if>
+			<py:if test="pf==None">
+				<input type="file" name="${el.getFormName()}"/>
+			</py:if>
+		</div>
+
+		<div py:def="field_Select_component(el)" class="component">
+			<select name="${el.getFormName()}">
+				<option py:for="opt in el.option" py:attrs="{'selected':el.getDefault(query)==opt.value and 'selected' or None, 'title': getattr(el, 'tooltip',None)}"  value="${opt.value}">${hasattr(opt, 'text') and opt.text or opt.value}</option>
+			</select>
+		</div>
+
+		<div py:def="field_Section(el)" class="section" py:attrs="{'title': getattr(el, 'tooltip',None)}">
+			${el.title}${help(el)}
+		</div>
+
+		<div py:def="field_Group(el)" class="group">
+			<div class="section" py:if="hasattr(el, 'title')"  py:attrs="{'title': getattr(el, 'tooltip',None)}">${el.title}${opt(el)}${help(el)}</div>
+			${set_of_elements(el.children())}
+		</div>
+
+		<div py:def="field_VarGroup(el)" py:with="name=el.getFormName(); id=name.replace('/','-'); strip=len(el.children())==1 and isinstance(el.children()[0], field.Group)" id="${id}" class="vargroup ${id}" >
+			<div class="section element" py:attrs="{'title': getattr(el, 'tooltip',None)}">${el.title}${help(el)}<button type="button" id="${id}-add" class="add" onclick="addElement(event);">Add</button></div>
+
+
+			<py:if test="query != None">
+				<div py:for="idx in query.index_set(el.getFormName())"  class="varelement ${id}-element">
+					<?python
+						query.push_search_prefix(el.getFormName()+":"+idx+"/")
+					?>
+					<button type="button"  style="display:none;" class="remove">Remove</button>
+					<div py:strip="strip" class="element">
+						<div py:strip="strip" class="group">
+							${set_of_elements(el.children())}
+						</div>
+					</div>
+					<?python
+						query.pop_search_prefix()
+					?>
+				</div>
+			</py:if>
+
+			<script>
+				<?python
+					try:
+						count=len(query.index_set(el.getFormName()))
+					except:
+						count=0
+				?>
+
+
+				$(document).ready(function(){
+					$(".${id}").data("count",${count});
+					$(".${id}").data("max",${el.getMax()});
+					$(".${id}").data("name",'${name}');
+					$(".${id} .add").each(positionAdd);
+					$(".${id}-element").each(function() {
+						fixRemove($(this));
+					});
+				});
+			</script>
+			<div id="${id}-template" class="varelement template" style="display:none">
+				<?python
+					try:
+						query.push_search_prefix("///")
+					except:
+						pass
+				?>
+				<button type="button"  style="display:none;" class="remove" onclick="removeElement(event);">Remove</button>
+				<div py:strip="strip" class="element">
+					<div py:strip="strip" class="group">
+						${set_of_elements(el.children())}
+					</div>
+				</div>
+				<?python
+					try: 
+						query.pop_search_prefix()
+					except:
+						pass
+				?>
+			</div>
+		</div>
+
+		<xi:include href="${name}" py:for="name in parameters.get_templates()" />
+
+  
+		${set_of_elements(parameters.children())}
+
+		<div class="element submit">
+			<button type="button" class="submit">Submit</button>
+			<!--			<button type="reset">Reset</button>-->
+
+			<script>
+				$(document).ready(function(){
+					$(".submit button.submit").click(function(){
+						form=$(".submit button.submit").closest("form").first();
+
+						form.attr('action', "${root}/${app}/validate")
+
+						form.find("[name]").each(function(){
+							$(this).attr('name', getName($(this)));
+						})
+
+						success=function() {
+							$("#response .loader").hide();
+						}
+
+						error=function(jqXHR, textStatus, errorThrown) {
+							form.attr('action', "${root}/${app}/submit")
+							form.submit()
+						}
+
+						$("#response .loader").show();
+						$("#response .container").empty();
+						$("#response").slideDown();
+						form.ajaxSubmit({target: '#response .container', success: success, error: error});
+
+						form.attr('action', "${root}/${app}/submit")
+					})
+				})
+			</script>
+		</div>
+	  </div></form>
+	  <div id="response" class="form" style="display: none">
+	  	<img class="loader" src="${media}/loader.gif"/>
+		<div class="container"></div>
+	  </div>
+    </div>
+  </body>
+	<script>
+		$(document).ready(function(){
+			$("form [name]").each(function(){
+				storeName($(this));
+			})
+<!--!			$("form [name]").click(function(event){
+				alert(getName($(event.target)));
+			})-->
+		})
+	</script>
+</html>
+

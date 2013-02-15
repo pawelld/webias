@@ -1,0 +1,108 @@
+<!--!
+Copyright 2013 Pawel Daniluk, Bartek Wilczynski
+
+This file is part of WeBIAS.
+
+WeBIAS is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as 
+published by the Free Software Foundation, either version 3 of 
+the License, or (at your option) any later version.
+
+WeBIAS is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public 
+License along with WeBIAS. If not, see 
+<http://www.gnu.org/licenses/>.
+-->
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+xmlns:py="http://genshi.edgewall.org/" py:strip="">
+<div id="center">
+  	<?python
+  		import gnosis.xml.objectify as objectify
+  		from itertools import cycle
+  	?>
+
+	<script src="${media}/Jmol/pop_Jmol.js" type="text/javascript"></script>
+
+  	<table class="dedal-table"  >
+		<tr class="dedal-table-header">
+			<td rowspan="2"></td>
+			<td rowspan="2">#</td>
+			<td rowspan="2"><a href="#n_aa">N. AA</a></td>
+			<td rowspan="2"><a href="#scored_aa">scored AA</a></td>
+			<td rowspan="2"><a href="#RMSD">RMSD</a></td>
+			<td rowspan="2"><a href="#score">Score</a></td>
+			<td rowspan="2"><a href="#tension">Tension</a></td>
+			<td rowspan="2"><a href="#alignment">Alignment</a></td>
+			<td><a href="#regions">Regions</a></td>
+		</tr>
+		<tr>
+			<td class="dedal-table-superpos"><a href="#superposition">Superposition</a></td>
+		</tr>
+
+		<?python
+			def furl(f):
+				return "%s/%s/file?uuid=%s&pathname=%s&runid=%d"%(root,app,uuid,f,runid)
+		?>
+
+		<a py:def="flink(file,label)" href="${furl(file)}">${label}</a>
+		<a py:def="jmollink(struct,script,title,label)" href="javascript:void(callJmol(document, '${title}','${furl(struct)}', '${furl(script)}'))">${label}</a>
+
+  		<py:for each="al in result.tree.alignment" py:with="n=int(al.num.PCDATA)-1">
+			<tr class="dedal-table-align">
+				<td align="center">Alignment</td>
+				<td align="center">${al.num.PCDATA}</td>
+				<td align="right">${al.nAA.PCDATA}</td>
+				<td align="right">${al.AAscore.PCDATA}</td>
+				<td align="right">${al.RMSD.PCDATA}</td>
+				<td align="right">${al.score.PCDATA}</td>
+				<td align="right">${al.tension.PCDATA}</td>
+				<td>${flink('res_%d.al'%n, 'Ranges')}    ${flink('res_%d.fasta'%n, 'FASTA')}</td>
+				<td>Mol1(${flink('res_M_%d.scr'%n, 'RasMol')}, ${jmollink('res_M_%d.pdb'%n, 'res_M_%d.script'%n, 'Alignment %d Mol1 regions'%(n+1), 'Jmol')})    Mol2(${flink('res_T_%d.scr'%n, 'RasMol')}, ${jmollink('res_T_%d.pdb'%n, 'res_T_%d.script'%n, 'Alignment %d Mol2 regions'%(n+1), 'Jmol')})</td>
+			</tr>
+
+  			<py:for each="reg in al.regions.region" py:with="nreg=int(reg.num.PCDATA)-1">
+				<tr class="dedal-table-region">
+					<td rowspan="1">Regions</td>
+					<td>R${nreg+1}</td>
+					<td></td>
+					<td>${reg.nAA.PCDATA}</td>
+					<td>${reg.RMSD.PCDATA}</td>
+					<td> </td><td> </td>
+					<td>${flink('res_%d_%d.al'%(n,nreg), 'Ranges')}    ${flink('res_%d_%d.fasta'%(n,nreg), 'FASTA')}</td>
+					<td class="dedal-table-superpos">(
+						${flink('res_%d_%d.pdb'%(n,nreg), 'PDB')},
+						${flink('res_%d_%d.scr'%(n,nreg), 'RasMOL')},
+						${jmollink('res_%d_%d.pdb'%(n,nreg), 'res_%d_%d.script'%(n,nreg), 'Alignment %d R%d superposition'%(n+1,nreg+1), 'Jmol')})
+					</td>
+				</tr>
+  			</py:for>
+  		</py:for>
+  	</table>
+</div>
+<hr />
+<h4 id="n_aa">N. AA</h4>
+Number of aligned residues.<br />
+<h4 id="scored_aa">Scored AA</h4>
+Number of aligned residues included in score.<br />
+<h4 id="RMSD">RMSD</h4>
+RMSD of aligned residues. <br />
+<h4 id="score">Score</h4>
+Number of scored residues decreased tension squared. <br />
+<h4 id="tension">Tension</h4>
+Quality of the alignment. The lower the better. <br />
+<h4 id="alignment">Alignment</h4>
+Text file representation of the alignment. <br />
+<h4 id="regions">Regions</h4>
+Positions of aligned regions in their respective structures.<br />
+Superposition files in the RasMol script format should be viewed with the command "<tt>rasmol -script </tt> <i>file.scr</i>". In most web browsers it is possible to set up a proper handler to open these files automatically.<br />
+Jmol requires Java to be enabled.
+<h4 id="superposition">Superposition</h4>
+Supeprosition of aligned residues belogning to the respective region.
+<hr />
+
+</html>

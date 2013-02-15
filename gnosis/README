@@ -1,0 +1,8 @@
+This directory contains a part of Gnosis Utils (see
+http://freecode.com/projects/gnosisxml).
+
+Gnosis Utils is a set of modules authored by David Mertz and released to public
+domain.
+
+File xml/objectify/_objectify.py contains modifications required to run WeBIAS.
+A regular version of Gnosis Utils is incompatible with WeBIAS.

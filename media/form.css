@@ -1,0 +1,186 @@
+/*
+ Copyright 2013 Pawel Daniluk, Bartek Wilczynski
+ 
+ This file is part of WeBIAS.
+ 
+ WeBIAS is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as 
+ published by the Free Software Foundation, either version 3 of 
+ the License, or (at your option) any later version.
+ 
+ WeBIAS is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
+ 
+ You should have received a copy of the GNU Affero General Public 
+ License along with WeBIAS. If not, see 
+ <http://www.gnu.org/licenses/>.
+*/
+
+div.form {
+        width: 960px;
+        border-style: solid;
+        border-width:1px;
+        padding: 8px;
+        margin-left:auto;
+        margin-right:auto;
+}
+
+div.login {
+		display: inline-block;
+        border-style: solid;
+        border-width:1px;
+        padding: 8px 8px;
+		margin: 30px auto 10px auto;
+	text-align: left;
+
+}
+
+div.login .fields{
+		display: table;
+        margin: 0px auto -8px auto;
+		border-spacing: 0px 8px;
+}
+
+div.login .fields:first-child {
+        margin-top: -8px;
+}
+
+div.login .smallprint {
+	font-size: smaller;
+	margin: 0;
+}
+div.group {
+        border-style: solid;
+        border-width:1px;
+        padding: 8px;
+}
+
+div.vargroup {
+        border-style: solid;
+        border-width:1px;
+        padding: 8px 8px 0px 8px;
+}
+
+div.element {
+	margin-top: 8px;
+}
+
+div.element .label img {
+	margin: -1px 0 2px;
+	vertical-align: middle;
+}
+
+div.element-skip {
+	display: none;
+}
+
+div.varelement > div.element {
+	margin: 0px;
+}
+
+div.varelement > div.element > div.group {
+	border-width: 1px 0px 0px 0px;
+}
+
+div.element-skip+div.element {
+	margin-top: 0px;
+}
+
+div.element:first-child {
+	margin-top: 0px;
+}
+
+div.varelement {
+	margin: 0px -8px;
+	position: relative;
+}
+
+
+div.varelement button {
+	margin: 8px 8px;
+}
+
+div.section {
+    width: 100%;
+    background: #6666FF;
+    color: #FFFFFF;
+    margin: 0px -8px;
+    padding: 4px 8px;
+    font-weight: bold;
+    font-size: larger;
+}
+
+div.section-light {
+    background: #CCCCFF;
+}
+
+div.group div.section, div.vargroup div.section {
+        margin-top: -8px;
+}
+
+div.group .label {width: 311px;}
+div.group div.group .label {width: 302px;}
+div.group div.group div.group .label {width: 293px;}
+div.group div.group div.group div.group .label {width: 284px;}
+div.group div.group div.group div.group div.group .label {width: 275px;}
+div.group .component {width: 631px;}
+div.group div.group .component {width: 622px;}
+div.group div.group div.group .component {width: 613px;}
+div.group div.group div.group div.group .component {width: 604px;}
+div.group div.group div.group div.group div.group .component {width: 595px;}
+
+
+div.submit {
+	text-align: center;
+}
+
+div.submit button {
+	width: 100px;
+	margin: 0px 25px;
+}
+
+.label {
+        width: 320px;
+		display: inline-block;
+		vertical-align: top;
+}
+
+.component {
+        width: 640px;
+		display: inline-block;
+}
+
+.form .star {
+	font-weight: bold;
+	color: red;
+}
+
+div.login .message {
+	font-weight: bold;
+	color: red;
+}
+
+div.login .fields .element {
+	display: table-row;
+}
+
+div.login .fields .label {
+	width: auto;
+	display: table-cell;
+	text-align: right;
+}
+
+div.login .fields .component {
+	width: auto;
+	display: table-cell;
+}
+
+div.login div.submit button {
+	width: auto;
+}
+
+button.remove {
+	position: absolute;
+}

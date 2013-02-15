@@ -1,0 +1,69 @@
+<!--!
+Copyright 2013 Pawel Daniluk, Bartek Wilczynski
+
+This file is part of WeBIAS.
+
+WeBIAS is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as 
+published by the Free Software Foundation, either version 3 of 
+the License, or (at your option) any later version.
+
+WeBIAS is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public 
+License along with WeBIAS. If not, see 
+<http://www.gnu.org/licenses/>.
+-->
+
+<html xmlns:py="http://genshi.edgewall.org/" encoding="utf-8" xmlns:xi="http://www.w3.org/2001/XInclude">
+	<xi:include href="base.genshi" />
+	<head>
+		<title>Requests</title>
+	</head>
+	<body>
+		<h1>Requests</h1>
+
+		<?python
+			from itertools import cycle
+		?>
+
+		<table class="table" style="width: auto;" py:with="cls=cycle(('odd','even'))" >
+			<tr>
+				<th>Date</th>
+				<th>Application</th>
+				<th>User</th>
+				<th>IP</th>
+				<th>Scheduler</th>
+				<th>Status</th>
+				<th>Show</th>
+				<th>Action</th>
+			</tr>
+			<tr py:for="req in requests"  class="${cls.next()}">
+				<td>${req.date}</td>
+				<td>${req.app_id}</td>
+				<td><py:choose>
+					<py:when test="req.user.id==-1">Anonymous</py:when>
+					<py:when test="req.user.login==None">${req.user.e_mail}</py:when>
+					<py:otherwise>${req.user.login}</py:otherwise>
+				</py:choose></td>
+				<td>${req.ip_address}</td>
+				<td>${req.sched_id}</td>
+				<td>${req.status}</td>
+				<td>
+					<a py:if="req.status == 'FINISHED'" href="${root}/${req.app_id}/result/${req.uuid}">Results</a>
+					<a py:if="req.status != 'FINISHED'" href="${root}/${req.app_id}/params/${req.uuid}">Parameters</a>
+				</td>
+				<td>
+					<a href="${root}/admin/requests/delete/${req.uuid}">Delete</a> 
+					<a py:if="req.status in ('FINISHED','FAILED')" href="${root}/admin/requests/rerun/${req.uuid}">Rerun</a>
+				</td>
+			</tr>
+		</table>		
+
+		${pager(page, pages, page_addr)}
+	</body>
+</html>
+
