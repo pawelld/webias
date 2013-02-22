@@ -269,6 +269,10 @@ class Passwd():
             cherrypy.session['message']="Error. Please log again."
             raise cherrypy.InternalRedirect("/login/")
 
+        if login == 'admin':
+            cherrypy.session['message']="Changing administrator password not allowed on WeBIAS demo site."
+            raise cherrypy.InternalRedirect("/login/passwd/")
+
         if newpass!=verpass:
             cherrypy.session['message']="Passwords do not match."
             raise cherrypy.InternalRedirect("/login/passwd/")
@@ -398,7 +402,7 @@ class Login:
 
     @cherrypy.expose
     def submit(self, login, passwd):
-        fl=cherrypy.session.get('force_login', ForceLogin(message=''))
+        fl=cherrypy.session.get('force_login', ForceLogin(message='', acl=[[login]]))
 
         session=cherrypy.request.db
         if not self.authenticate(session, login, passwd):
