@@ -200,7 +200,7 @@ class Application(objectify._XO_):
 
         return render(tmpl,app=self,uuid=uuid, owner=owner, runid=runid, query=q, result=r, param_table=param_table, result_table=result_table, tag=tag, starred=starred)
 
-    def result_acl(self,uuid,runid=None):
+    def result_acl(self,uuid,runid=None,**kwargs):
         session=cherrypy.request.db
 
         request=data.Request.get_request(session, uuid)
