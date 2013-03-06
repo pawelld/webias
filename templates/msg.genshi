@@ -59,7 +59,7 @@ xmlns:xi="http://www.w3.org/2001/XInclude" py:strip="">
 
 	<py:match path="body" once="true">
 		<body py:attrs="select('@*')">
-			<h1 py:if="not header_present and defined('app')">
+			<h1 py:if="not header_present and defined('app') and not defined('nobase') or not nobase">
       			Message from ${app} on ${server} server.
 			</h1>
 			${select('*|text()')}
@@ -69,6 +69,6 @@ xmlns:xi="http://www.w3.org/2001/XInclude" py:strip="">
 		</body>
 	</py:match>
 
-  <xi:include href="base.genshi" />
+	<xi:include href="base.genshi" />
 </html>
 

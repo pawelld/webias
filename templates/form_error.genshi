@@ -18,12 +18,19 @@ License along with WeBIAS. If not, see
 <http://www.gnu.org/licenses/>.
 -->
 
-<html xmlns:py="http://genshi.edgewall.org/" encoding="utf-8">
-	<h2>Error</h2>
-	<div id="center">
+<html xmlns:py="http://genshi.edgewall.org/" encoding="utf-8"
+xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="msg.genshi" />
+  <head>
+  </head>
+  <body>
+	  <header>
+	  Error
+	  </header>
+	  <content>
 		<ul>
 			<li py:for="item in errors"> ${Markup(item)}</li>
 		</ul>
-	</div>
+      </content>
+  </body>
 </html>
-

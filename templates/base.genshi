@@ -19,7 +19,7 @@ License along with WeBIAS. If not, see
 -->
 
 <html xmlns="http://www.w3.org/1999/xhtml"
-xmlns:py="http://genshi.edgewall.org/" py:strip="">
+xmlns:py="http://genshi.edgewall.org/" py:strip="" py:if="not defined('nobase') or not nobase">
 
 	<py:match path="head" once="true">
 		<head py:attrs="select('@*')">

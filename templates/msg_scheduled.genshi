@@ -31,10 +31,12 @@ xmlns:xi="http://www.w3.org/2001/XInclude">
 	  	<py:when test="False">Results</py:when>
 	  </py:choose>
 	  will be accessible under the following URL:<br/><br/>
-	  <a href="${root}/${app}/result?uuid=${uuid}">${address}/${app}/result?uuid=${uuid}</a><br/><br/>
-	  <py:if test="email">If you haven't received an e-mail confirming your submission please contact the administrator.<br/><br/></py:if>
-	  Thank you,<br/><br/>
+	  <a href="${root}/${app}/result?uuid=${uuid}">${address}/${app}/result?uuid=${uuid}</a>
+	  <py:if test="email"><br/><br/>If you haven't received an e-mail confirming your submission please contact the administrator.</py:if>
+	  <py:if test="not defined('nobase') or not nobase">
+	  <br/><br/>Thank you,<br/><br/>
 	  ${server} administrator<br/>
+	  </py:if>
       </content>
   </body>
 </html>

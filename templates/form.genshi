@@ -223,10 +223,11 @@ xmlns:xi="http://www.w3.org/2001/XInclude">
 		${set_of_elements(parameters.children())}
 
 		<div class="element submit">
-			<button type="button" class="submit">Submit</button>
+			<button type="submit" class="submit">Submit</button>
 			<!--			<button type="reset">Reset</button>-->
 
 			<script>
+				/*
 				$(document).ready(function(){
 					$(".submit button.submit").click(function(){
 						form=$(".submit button.submit").closest("form").first();
@@ -249,11 +250,12 @@ xmlns:xi="http://www.w3.org/2001/XInclude">
 						$("#response .loader").show();
 						$("#response .container").empty();
 						$("#response").slideDown();
-						form.ajaxSubmit({target: '#response .container', success: success, error: error});
 
+						form.ajaxSubmit({target: '#response .container', success: success, error: error});
 						form.attr('action', "${root}/${app}/submit")
 					})
 				})
+				*/
 			</script>
 		</div>
 	  </div></form>
