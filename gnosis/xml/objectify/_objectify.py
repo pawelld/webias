@@ -261,6 +261,10 @@ class ExpatFactory:
 #-- Helper functions
 def pyobj_from_dom(dom_node):
     "Converts a DOM tree to a 'native' Python object"
+
+    if dom_node.nodeName=='#comment': # Added by PD: comments should be ignored 
+        return None
+
     py_obj = createPyObj(py_name(dom_node.nodeName))
 
     py_obj._seq=[]
@@ -300,22 +304,23 @@ def pyobj_from_dom(dom_node):
             
         else:
             subobj=pyobj_from_dom(node)
-            subobj.__parent__=py_obj
+            if subobj!=None: # Added by PD: pyobj_from_dom returns None for comments.
+                subobj.__parent__=py_obj
 
-        # does a py_obj attribute corresponding to the subtag already exist?
-            if hasattr(py_obj, node_name):
-            # convert a single child object into a list of children
-#            if type(getattr(py_obj, node_name)) is not ListType:
-                if not isinstance(getattr(py_obj, node_name), ListType):
-                    setattr(py_obj, node_name, [getattr(py_obj, node_name)])
-            # add the new subtag to the list of children
-                getattr(py_obj, node_name).append(subobj)
-        # start out by creating a child object as attribute value
-            else:
-                setattr(py_obj, node_name, subobj)
-                subtag = 1
+            # does a py_obj attribute corresponding to the subtag already exist?
+                if hasattr(py_obj, node_name):
+                # convert a single child object into a list of children
+    #            if type(getattr(py_obj, node_name)) is not ListType:
+                    if not isinstance(getattr(py_obj, node_name), ListType):
+                        setattr(py_obj, node_name, [getattr(py_obj, node_name)])
+                # add the new subtag to the list of children
+                    getattr(py_obj, node_name).append(subobj)
+            # start out by creating a child object as attribute value
+                else:
+                    setattr(py_obj, node_name, subobj)
+                    subtag = 1
 
-            py_obj._seq.append(subobj)
+                py_obj._seq.append(subobj)
 
     # See if we want to save the literal character string of element
     if KEEP_CONTAINERS <= NEVER:
