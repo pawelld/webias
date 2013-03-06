@@ -357,7 +357,19 @@ class Section(Field):
 
 
 class Checkbox(Field):
+    def getValue(self, kwds):
+        try:
+            data=kwds[self.getFormName()]
+            data=True
+        except:
+            data=False
+
+        return data
+
     def validate(self,kwds):
+        if not self.getValue(kwds) and self.isOptional():    
+            return 'EMPTY', []
+
         return 'VALID', []
 
 
@@ -377,7 +389,8 @@ class File(Field):
         return val 
 
     def validate(self, kwds):
-        if self.getValue(kwds).filename == "":
+        print self.getValue(kwds)
+        if self.getValue(kwds)=='' or self.getValue(kwds).filename == "":
             if self.isOptional():    
                 return 'EMPTY', []
             else:
