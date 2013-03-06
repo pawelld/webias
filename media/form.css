@@ -131,6 +131,10 @@ div.group div.group div.group .component {width: 613px;}
 div.group div.group div.group div.group .component {width: 604px;}
 div.group div.group div.group div.group div.group .component {width: 595px;}
 
+img.loader {
+	margin: 0 auto;
+	display: block;
+}
 
 div.submit {
 	text-align: center;
