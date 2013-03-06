@@ -66,10 +66,13 @@ def protect(allowed):
     login=False
     logout=False
 
+    noauth=False
+
     handler=cherrypy.request.handler.callable
 
     if hasattr(handler, 'has_acl'):
         handler.__func__.get_acl=True
+        noauth=handler.__func__.noauth
         allowed=cherrypy.request.handler.__call__()
 
     if cherrypy.request.method=='POST':
@@ -78,9 +81,9 @@ def protect(allowed):
 
         def action():
             return new_handler.__call__()
-        fl=ForceLogin(acl=allowed, action=action)
+        fl=ForceLogin(acl=allowed, action=action, noauth=noauth)
     else:
-        fl=ForceLogin(acl=allowed, goto=cherrypy.url(qs=cherrypy.request.query_string))
+        fl=ForceLogin(acl=allowed, goto=cherrypy.url(qs=cherrypy.request.query_string), noauth=noauth)
     
     if not fl.match(get_login()):
         fl.do()
@@ -147,7 +150,7 @@ def set_admin_pw():
 
 
 class ForceLogin():
-    def __init__(self, message="You have to be logged in to access this page.", acl=None, login=None, goto=None, action=None):
+    def __init__(self, message="You have to be logged in to access this page.", acl=None, login=None, goto=None, action=None,noauth=False):
         self.message=message
         if acl==None:
             if login != None:
@@ -162,6 +165,7 @@ class ForceLogin():
         self.login=login
         self.goto=goto
         self.action=action
+        self.noauth=noauth
 
     @staticmethod
     def match_acl(acl, login):
@@ -199,7 +203,7 @@ class ForceLogin():
 
         if ok:
             return self.success()
-        elif login!=None:
+        elif login!=None or self.noauth:
             raise cherrypy.HTTPError(403,"You are not authorized to access this page.")
 
         cherrypy.session['force_login']=self
@@ -433,7 +437,7 @@ class Login:
 
 
 
-def with_acl(acl_fun):
+def with_acl(acl_fun, noauth=False):
     def with_acl_decorator(handler):
         def wrap_handler(self, *args, **kwargs):
             if wrap_handler.get_acl:
@@ -444,6 +448,7 @@ def with_acl(acl_fun):
 
         wrap_handler.has_acl=True
         wrap_handler.get_acl=False
+        wrap_handler.noauth=noauth
 
         return wrap_handler
 
