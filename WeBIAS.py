@@ -53,6 +53,8 @@ class Bias:
 
         files=[os.path.basename(n) for n in glob.glob('apps/*.xml')]
 
+        defs={}
+
         for f in files:
             try:
                 defin=objectify.make_instance('apps/'+f, p=objectify.DOM)
@@ -63,16 +65,20 @@ class Bias:
                 traceback.print_exc()
 
             for app in apps:
-                dbapp=session.query(data.Application).get(app.id)
+                if defs.has_key(app.id):
+                    print 'Application %s defined in %s and redefined in %s.' % (app.id, defs[app.id], f)
+                else:
+                    defs[app.id]=f
+                    dbapp=session.query(data.Application).get(app.id)
 
-                out_files=''
+                    out_files=''
 
-                if hasattr(app.setup, 'output_files'):
-                    out_files=app.setup.output_files.PCDATA
+                    if hasattr(app.setup, 'output_files'):
+                        out_files=app.setup.output_files.PCDATA
 
-                if dbapp==None:
-                    dbapp=data.Application(app.id, f, app.setup.param_template.PCDATA, out_files, False)
-                    session.add(dbapp)
+                    if dbapp==None:
+                        dbapp=data.Application(app.id, f, app.setup.param_template.PCDATA, out_files, False)
+                        session.add(dbapp)
 
     def __init__(self):
         engine = create_engine(config.DB_URL, echo=False)
