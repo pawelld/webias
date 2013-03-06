@@ -114,12 +114,24 @@ class Application(objectify._XO_):
     def index(self):
         return self.render_form()
          
+    def validate_acl(self, *args, **kwargs):
+        status, messages, pars=self.parameters.process_parameters(kwargs)
+
+        cherrypy.session['validate_result']=[status, messages, pars]
+        
+        if status!='VALID': 
+            return self.app_acl(*args, **kwargs)
+        else:
+            return self.submit_acl(*args, **kwargs)
+
+        
+
     def submit_acl(self, *args, **kwargs):
 
         val=field.Email().process_parameters(kwargs)[2]
 
         if val==None:
-            return self.app_acl(args, kwargs)
+            return self.app_acl(*args, **kwargs)
         else:
             email=val._getValue()
 
@@ -127,38 +139,13 @@ class Application(objectify._XO_):
             user=data.User.get_by_email(session, email, insert=False)
 
             if user==None or user.login==None:
-                return self.app_acl(args, kwargs)
+                return self.app_acl(*args, **kwargs)
             else:
                 return [[user.login],'admin']
 
-    @cherrypy.expose
-    def validate(self,*lst,**kwds):
-        status, messages, pars=self.parameters.process_parameters(kwds)
-
+    def submit_int(self, status, messages, pars, nobase=False):
         if status!='VALID': 
-            return render('form_error.genshi',app=self, errors=[m.message for m in messages])
-        else:
-            
-            cherrypy.session['valid_kwds']=kwds
-        
-
-            return render('msg_scheduled.genshi',app=self,uuid=req.uuid,email=email)
-
-    @cherrypy.expose
-    @auth.with_acl(submit_acl)
-    def submit(self,*lst,**parkwds):
-        kwds=cherrypy.session.get('valid_kwds', parkwds)
-
-        try:
-            cherrypy.session.pop('valid_kwds')
-        except:
-            pass
-
-
-        status, messages, pars=self.parameters.process_parameters(kwds)
-
-        if status!='VALID': 
-            return render('form_error.genshi',app=self, errors=[m.message for m in messages])
+            return render('form_error.genshi',app=self, errors=[m.message for m in messages],nobase=nobase)
         else:
             session=cherrypy.request.db
             req = self.store_query(session, pars)
@@ -167,9 +154,22 @@ class Application(objectify._XO_):
                 email=False
             else:
                 email=True
-                util.email(req.user.e_mail,'email_scheduled.genshi',app=self,uuid=req.uuid)
+                util.email(req.user.e_mail,'email_scheduled.genshi',app=self,uuid=req.uuid)      
+            
+            return render('msg_scheduled.genshi',app=self,uuid=req.uuid,email=email,nobase=nobase)
 
-            return render('msg_scheduled.genshi',app=self,uuid=req.uuid,email=email)
+
+    @cherrypy.expose
+    @auth.with_acl(validate_acl, noauth=True)
+    def validate(self,**kwds):
+        status, messages, pars=cherrypy.session.get('validate_result')
+        return self.submit_int(status, messages, pars, nobase=True)
+
+    @cherrypy.expose
+    @auth.with_acl(submit_acl)
+    def submit(self,**kwds):
+        status, messages, pars=self.parameters.process_parameters(kwds)
+        return self.submit_int(status, messages, pars)
 
 
 
