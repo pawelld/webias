@@ -90,6 +90,9 @@ class Application(objectify._XO_):
 
         return data.User.get_by_email(session, email, insert=True)
 
+    def is_available(self):
+        return self.enabled and auth.ForceLogin().match_acl(self.app_acl(), auth.get_login())
+
     def store_query(self, session, pars):
         user=self.get_user(session, pars)
 
@@ -268,7 +271,115 @@ class Application(objectify._XO_):
             cherrypy.response.headers['Content-type']='application/octet-stream'
 
         return file.data
-            
+          
+class AppGroup():
+    def __init__(self, apps=[]):
+        self.elements={}
+    
+        for app in apps:
+            self.addEntry(app)
+
+    def addEntry(self, entry):
+        self.elements[entry.id]=entry
+
+    @property
+    def enabled(self):
+        return True
+
+    def _cp_dispatch(self, vpath):
+        if not vpath:
+            return self.index
+
+        el=self.elements.get(vpath[0],None)
+
+        if el and not el.enabled:
+            el=None
+
+        return el
+
+    def avail_elts(self):
+        return sorted(filter(lambda el: el.is_available() ,self.elements.values()), key=lambda el: el.name)
+
+    def used_apps(self):
+        l=[hasattr(el, 'used_apps') and el.used_apps() or [el.id] for el in self.elements.values()]
+
+        try:
+            l.append([self.id])
+        except:
+            pass
+
+        return sum(l, [])
+
+    def is_available(self):
+        return len(self.avail_elts()) > 0
+
+    @cherrypy.expose
+    @persistent
+    def index(self):
+        try:
+            desc=str(self.description)
+        except:
+            desc=None
+
+        return render('app_list.genshi',apps=self.avail_elts(), name=getattr(self, 'name', None), description=desc)
+
+class AppGroupEntry():
+    def __init__(self, app):
+        self.app=app
+
+    @property
+    def id(self):
+        return self.app.id
+
+    @property
+    def info(self):
+        return self.app.info
+
+    @property
+    def name(self):
+        return self.app.name
+
+    @property
+    def enabled(self):
+        return self.app.enabled
+
+    def _cp_dispatch(self, vpath):
+        if vpath:
+            return getattr(self.app,vpath[0],None)
+
+        return None
+
+    def used_apps(self):
+        return [self.app.id]
+
+    def is_available(self):
+        return self.app.is_available()
+
+    @cherrypy.expose
+    @persistent
+    def index(self):
+        return self.app.index()
+
+class AppGroupXML(AppGroup, objectify._XO_):
+    def assign_elts(self,elts):
+        self.elements={}
+        for el in self._seq:
+            try:
+                el.assign_elts(elts)
+                self.elements[el.id]=el
+            except:
+                pass
+
+
+class AppGroupEntryXML(objectify._XO_, AppGroupEntry):
+    def assign_elts(self, elts):
+        self.app=elts[self.appid]
+
+
+
+
 objectify._XO_application=Application
 objectify._XO_description=Description
+objectify._XO_appgroup=AppGroupXML
+objectify._XO_appgroupentry=AppGroupEntryXML
 

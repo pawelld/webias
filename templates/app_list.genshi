@@ -20,12 +20,15 @@ License along with WeBIAS. If not, see
 
 <html xmlns:py="http://genshi.edgewall.org/" encoding="utf-8" xmlns:xi="http://www.w3.org/2001/XInclude">
 	<xi:include href="base.genshi" />
+
+	<py:def function="inname()"><py:if test="defined('name') and name!=None"> in ${name}</py:if></py:def>
 	<head>
-		<title>List of applications</title>
+		<title>List of applications${inname()}</title>
 	</head>
 	<body>
-		<h1>List of applications on ${server} server.</h1>
-		<p>Currently available servers:</p>
+		<h1>List of applications${inname()} on ${server} server.</h1>
+		<p py:if="defined('description') and description!=None" name="description">${Markup(description)}</p>
+		<p>Currently available services:</p>
 		<dl>
 			<py:for each="app in apps">
 				<dt><a href="${app.id}/"> ${app.name}</a></dt>

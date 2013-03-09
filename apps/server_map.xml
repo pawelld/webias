@@ -1,0 +1,13 @@
+<bias>
+
+<appgroup id="Examples" name="Examples" info="WeBIAS examples">
+	<description>
+		WeBIAS examples.
+	</description>
+	<appgroupentry appid="Test"></appgroupentry>
+	<appgroupentry appid="groups"></appgroupentry>
+	<appgroupentry appid="vargroups"></appgroupentry>
+</appgroup>
+
+</bias>
+

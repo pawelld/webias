@@ -46,23 +46,25 @@ import traceback
 sys.path.append(config.BIAS_DIR+"/modules")
 
 
-class Bias:
+class WeBIAS:
     @staticmethod
     def scan_app_dir(session):
         apps=session.query(data.Application).all()
 
-        files=[os.path.basename(n) for n in glob.glob('apps/*.xml')]
+        files=glob.glob(config.BIAS_DIR+'/apps/*.xml')
 
         defs={}
 
         for f in files:
             try:
-                defin=objectify.make_instance('apps/'+f, p=objectify.DOM)
-                apps=defin.application
+                defin=objectify.make_instance(f, p=objectify.DOM)
             except:
-                apps=[]
+                defin=None
                 print 'Invalid application definition: ', f
                 traceback.print_exc()
+
+            apps=getattr(defin,'application', [])
+            groups=getattr(defin,'group', [])
 
             for app in apps:
                 if defs.has_key(app.id):
@@ -77,7 +79,7 @@ class Bias:
                         out_files=app.setup.output_files.PCDATA
 
                     if dbapp==None:
-                        dbapp=data.Application(app.id, f, app.setup.param_template.PCDATA, out_files, False)
+                        dbapp=data.Application(app.id, os.path.basename(f), app.setup.param_template.PCDATA, out_files, False)
                         session.add(dbapp)
 
     def __init__(self):
@@ -87,10 +89,10 @@ class Bias:
 
         data.Base.metadata.create_all(engine)
 
-        Bias.scan_app_dir(session)
+        WeBIAS.scan_app_dir(session)
         
-        self.inactive_apps={}
         self.apps={}
+        self.groups={}
 
         self.login=auth.Login()
         self.admin=admin.Admin()
@@ -103,25 +105,59 @@ class Bias:
             app=self.load_app(dbapp)
 
             if app!=None:
-                if dbapp.enabled:
-                    self.apps[app.id]=app
-                else:
-                    self.inactive_apps[app.id]=app
+                self.apps[app.id]=app
+                app.enabled=dbapp.enabled
 
         session.commit()
         session.remove()
         engine.dispose()
 
+        self.server_map()
         field.objectify_clean()
 
+    def server_map(self):
+        try:
+            filename=config.BIAS_DIR+'/apps/server_map.xml'
+            defin=objectify.make_instance(filename, p=objectify.DOM)
+            cherrypy.engine.autoreload.files.add(filename)
+            self.store_groups(defin)
+        except:
+            print 'Invalid or missing server_map.xml.'
+
+        d=dict(self.apps)
+        d.update(self.groups)
+
+        used=[]
+        for gr in self.groups.values():
+            gr.assign_elts(d)
+            used.extend(gr.used_apps())
+            used.remove(gr.id)
+
+
+        all=dict(self.apps)
+        all.update(self.groups)
+
+        for id in used:
+            all.pop(id,None)
+
+
+        self.root=application.AppGroup(all.values())
+        
+    def store_groups(self, defin):
+        try:
+            groups=defin.appgroup
+        except:
+            groups=[]
+
+        for gr in groups:
+            self.groups[gr.id]=gr
+        
                 
     def deregister(self,app_id):
-        self.inactive_apps[app_id]=self.apps[app_id]
-        del self.apps[app_id]
+        self.apps[app_id].enabled=False
 
     def register(self,app_id):
-        self.apps[app_id]=self.inactive_apps[app_id]
-        del self.inactive_apps[app_id]
+        self.apps[app_id].enabled=True
 
     def load_app(self,dbapp):
         filename=config.BIAS_DIR+'/apps/'+dbapp.definition
@@ -147,6 +183,8 @@ class Bias:
                         print "Updating output_files for application %s.\n"%dbapp.id
                         dbapp.output_files=app.setup.output_files.PCDATA
 
+                    self.store_groups(defin)
+
                     return app
         except:
             print "Cannot load %s required for application %s. Disabling.\n"%(filename, dbapp.id)
@@ -158,9 +196,7 @@ class Bias:
     @cherrypy.expose
     @persistent
     def index(self):
-        apps=filter(lambda app: auth.ForceLogin().match_acl(app.app_acl(), auth.get_login()),self.apps.values())
-
-        return render('app_list.genshi',apps=apps)
+        return self.root.index()
 
 #    @cherrypy.expose
 #    def error(self):
@@ -192,7 +228,15 @@ class Bias:
 
 
     def _cp_dispatch(self, vpath):
-        return self.apps.get(vpath[0],None)
+        res=self.root._cp_dispatch(vpath)
+
+        if not res:
+            try:
+                res=self.apps[vpath[0]]
+            except:
+                pass
+
+        return res
 
 
 if __name__=="__main__":
@@ -239,7 +283,7 @@ if __name__=="__main__":
         'tools.staticdir.dir': config.BIAS_DIR+'/media'
     }
 
-    cherrypy.tree.mount(Bias(),config.APP_ROOT, config={'/': conf, '/media':mediaconf})
+    cherrypy.tree.mount(WeBIAS(),config.APP_ROOT, config={'/': conf, '/media':mediaconf})
     
     cherrypy.config.update({
         'session_filter.on':True,
