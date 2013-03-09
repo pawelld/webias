@@ -212,8 +212,8 @@ class Scheduler:
             if dbsched.status!='STOPPED':
                 for dbschedlock in dbsched.locks:
                     if dbschedlock.lock_end==None:
-						self.pid=dbschedlock.pid
-						self.host=dbschedlock.host
+                        self.pid=dbschedlock.pid
+                        self.host=dbschedlock.host
                         
             else:
                 raise Exception("Scheduler %s is not running." % (self.sched_id))
@@ -269,34 +269,40 @@ class Scheduler:
         session.add(run)
         session.commit()
 
-        JOB_DIR=run.get_job_dir(config.WRK_DIR)
-        os.makedirs(JOB_DIR)
+        try:
+            JOB_DIR=run.get_job_dir(config.WRK_DIR)
+            os.makedirs(JOB_DIR)
 
-        query=objectify.make_instance(req.query, p=objectify.DOM)
+            query=objectify.make_instance(req.query, p=objectify.DOM)
 
-        cmd=NewTextTemplate(req.app.param_template).generate(**query.__dict__).render('text').strip()
+            cmd=NewTextTemplate(req.app.param_template).generate(**query.__dict__).render('text').strip()
 
-        fh=open(JOB_DIR+'/'+config.CMD_FILE,'w')
-        fh.write(cmd)
-        fh.close()
+            fh=open(JOB_DIR+'/'+config.CMD_FILE,'w')
+            fh.write(cmd)
+            fh.close()
 
 
-        files=session.query(data.File).filter(data.File.request == req and data.File.type == 'input')
+            files=session.query(data.File).filter(data.File.request == req and data.File.type == 'input')
 
-        for f in files:
-            f.write(JOB_DIR)
+            for f in files:
+                f.write(JOB_DIR)
 
-        pid = self.queue_run(JOB_DIR,config.CMD_FILE,config.ERR_FILE,config.RES_FILE)
+            pid = self.queue_run(JOB_DIR,config.CMD_FILE,config.ERR_FILE,config.RES_FILE)
 
-        self.running+=1
+            self.running+=1
 
-        run.status='RUNNING'
-        run.pid=pid
-        req.status='PROCESSING'
+            run.status='RUNNING'
+            run.pid=pid
+            req.status='PROCESSING'
+            print "executed run %d, for request %d under PID=%d"%(run.id,req.id,pid)
+        except:
+            print "failed to execute run %d, for request %d"%(run.id,req.id)
+            traceback.print_exc()
+            run.status='FAILED'
+            req.status='FAILED'
 
         session.commit()
 
-        print "executed run %d, for request %d under PID=%d"%(run.id,req.id,pid)
 
     def collect(self,session,run):
 
