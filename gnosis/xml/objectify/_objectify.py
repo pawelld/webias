@@ -351,12 +351,14 @@ def createPyObj(s):
     klass = '_XO_'+s
 
     try:
-        return gnosis.xml.objectify.__dict__[klass]()
-    except:
+        cl=gnosis.xml.objectify.__dict__[klass]
+#        return gnosis.xml.objectify.__dict__[klass]()
+    except KeyError:  # A noew class should be created only on this particular exception. Fixed by PD.
         # Create an instance of the tag-named class
         exec ('class %s(gnosis.xml.objectify._XO_): pass' % klass)
         cl = locals()[klass]
         cl.PCDATA = None
         cl._seq = None
         gnosis.xml.objectify.__dict__[klass] = cl
-        return cl()
+
+    return cl()
