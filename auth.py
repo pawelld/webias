@@ -61,11 +61,6 @@ def make_secure():
 cherrypy.tools.secure = cherrypy.Tool('before_handler', make_secure, priority=20)
 
 def protect(allowed):
-    ok=False
-    admin=False
-    login=False
-    logout=False
-
     noauth=False
 
     handler=cherrypy.request.handler.callable
@@ -74,7 +69,7 @@ def protect(allowed):
         handler.__func__.get_acl=True
         noauth=handler.__func__.noauth
         allowed=cherrypy.request.handler.__call__()
-
+    
     if cherrypy.request.method=='POST':
         handler=cherrypy.request.handler
         new_handler=cherrypy._cpdispatch.PageHandler(handler.callable, *handler.args, **handler.kwargs)
@@ -141,11 +136,6 @@ def set_admin_pw():
         u.update_passwd(passwd)
         u.e_mail=e_mail
         session.commit()
-
-
-
-    
-
 
 
 
