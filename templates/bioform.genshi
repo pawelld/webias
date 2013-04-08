@@ -1,0 +1,6 @@
+<html xmlns:py="http://genshi.edgewall.org/" encoding="utf-8"
+xmlns:xi="http://www.w3.org/2001/XInclude">
+	<span py:def="field_StructureCode_component(el)" class="component">
+		<input name="${el.getFormName()}" length="10" value="${el.getDefault(query)}"/><font size="1"> (e.g. 1m55, 1nklA, d1qdma1)</font>
+	</span>
+</html>
