@@ -230,12 +230,6 @@ class File(Base):
 
     __table_args__ = (UniqueConstraint('request_id','run_id','path','name'), )
 
-    def read(self):
-        return self.data
-
-    def seek(self, *kwds):
-        pass
-
     def write(self, dir):
         dir+='/'+self.path
         if not os.access(dir, os.F_OK):
