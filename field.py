@@ -25,6 +25,7 @@ import data
 import util
 
 import auth
+
 #from WeBIAS import get_db_conn
 
 
@@ -61,19 +62,22 @@ class FieldValue():
     def _printValue(self):
         return self._getValue()
 
+    def _getAttributes(self):
+        return ''
+
     def _makeXML(self):
         t=''
         idx=''
 
         if self._type!=None:
-            t=' type="%s"'%self._type
+            t='type="%s"'%self._type
 
         try:
-            idx=' index="%d"'%self.idx
+            idx='index="%d"'%self.idx
         except:
             pass
 
-        return '<%s%s%s>%s</%s>'%(self._getId(), t, idx, self._printValue(), self._getId())
+        return '<%s %s %s %s>%s</%s>'%(self._getId(), t, idx, self._getAttributes(), self._printValue(), self._getId())
 
 class FieldSingleValue(FieldValue):
     def __init__(self, field):
@@ -103,6 +107,7 @@ class FieldFileValue(FieldSingleValue):
         f.seek(0)
         session.add(file)
     
+
 
 class FieldGroupValue(FieldValue):
     def __init__(self, field):
@@ -154,7 +159,7 @@ class Parameters(objectify._XO_):
     def get_templates(self):
         res=[]
 
-        for c in objectify.children(self):
+        for c in self.children():
             for f in objectify.walk_xo(c):
                 if hasattr(f, 'get_templates'):
                     res+=f.get_templates()
@@ -173,7 +178,7 @@ class Parameters(objectify._XO_):
         valid='VALID'
         messages=[]
         res=self.valueClass()
-        for par in objectify.children(self):
+        for par in self.children():
             v, msg, val=par.process_parameters(kwds)
 
             messages.extend(msg)
@@ -260,10 +265,6 @@ class Field(objectify._XO_):
         name+=self.id
 
         return name
-
-    def children(self):
-        return objectify.children(self)
-
 
     def validate(self, kwds):
         if self.getValue(kwds) == "":
@@ -382,13 +383,18 @@ class File(Field):
 
             val=util.expando()
             session=cherrypy.request.db
-            val.file=session.query(data.File).get(id)
-            val.filename=val.file.name
+
+            import StringIO
+            file=session.query(data.File).get(id)
+            val.file=StringIO.StringIO(file.data)
+            val.filename=file.name
         except KeyError:
             val=Field.getValue(self,kwds)
         return val 
 
     def validate(self, kwds):
+        print self.getFormName()
+        print kwds
         print self.getValue(kwds)
         if self.getValue(kwds)=='' or self.getValue(kwds).filename == "":
             if self.isOptional():    
@@ -429,7 +435,7 @@ class Group(Field):
 
     def getInfo(self):
         res=""
-        for par in objectify.children(self):
+        for par in self.children():
             try:
                 if res=="":
                     res=par.info
@@ -447,7 +453,7 @@ class Group(Field):
         nval=nemp=ninv=0
         messages=[]
         res=self.valueClass(self)
-        for par in objectify.children(self):
+        for par in self.children():
             v, msg, val=par.process_parameters(kwds)
 
             messages.extend(msg)
@@ -531,7 +537,7 @@ class VarGroup(Field):
 
             elnval=elnemp=elninv=0
 
-            for par in objectify.children(self):
+            for par in self.children():
                 v, msg, val=par.process_parameters(selkwds)
 
                 messages.extend(msg)
