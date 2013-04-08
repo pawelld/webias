@@ -36,7 +36,16 @@ class Applications:
     def index(self):
         session=cherrypy.request.db
 
-        return render('admin_apps.genshi', apps=session.query(data.Application))
+        apps=session.query(data.Application)
+
+        root=cherrypy.tree.apps[config.APP_ROOT].root
+
+        def loaded(app):
+            return app.id in root.apps
+
+
+
+        return render('admin_apps.genshi', apps=apps, loaded_test=loaded)
 
 
     @cherrypy.expose
@@ -85,24 +94,29 @@ class Applications:
     def enable(self,app):
         session=cherrypy.request.db
 
-        dbapp=self.set_enabled(session,app,True)
 
-        cherrypy.tree.apps[config.APP_ROOT].root.register(dbapp.id)
+        root=cherrypy.tree.apps[config.APP_ROOT].root
+        
+        dbapp=None
 
-        if not dbapp.enabled:
+        if app in root.apps:
+            dbapp=self.set_enabled(session,app,True)
+            cherrypy.tree.apps[config.APP_ROOT].root.register(dbapp.id)
+
+        if dbapp==None or not dbapp.enabled:
             raise cherrypy.HTTPError(500, "Failed to enable %s."%app)
 
         go_back()
             
-    @cherrypy.expose
-    def delete(self, app):
-        session=cherrypy.request.db
-
-        dbapp=data.Application.get_app(session, app)
-
-        session.delete(dbapp)
-
-        go_back()
+#    @cherrypy.expose
+#    def delete(self, app):
+#        session=cherrypy.request.db
+#
+#        dbapp=data.Application.get_app(session, app)
+#
+#        session.delete(dbapp)
+#
+#        go_back()
 
 class Requests:
 
