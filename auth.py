@@ -263,9 +263,9 @@ class Passwd():
             cherrypy.session['message']="Error. Please log again."
             raise cherrypy.InternalRedirect("/login/")
 
-        if login == 'admin':
-            cherrypy.session['message']="Changing administrator password not allowed on WeBIAS demo site."
-            raise cherrypy.InternalRedirect("/login/passwd/")
+#        if login == 'admin':
+#            cherrypy.session['message']="Changing administrator password not allowed on WeBIAS demo site."
+#            raise cherrypy.InternalRedirect("/login/passwd/")
 
         if newpass!=verpass:
             cherrypy.session['message']="Passwords do not match."
