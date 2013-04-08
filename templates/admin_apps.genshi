@@ -50,7 +50,10 @@ License along with WeBIAS. If not, see
 			<tr py:for="app in apps" py:with="stats=app.get_stats()" class="${cls.next()}">
 				<td>${app.id}</td>
 				<td class="center">${app.enabled and 'Yes' or 'No'}</td>
-				<td><a href="definition/${app.id}">${app.definition}</a></td>
+				<td>
+					<py:if test="loaded_test(app)"><a href="definition/${app.id}">${app.definition}</a></py:if>
+					<py:if test="not loaded_test(app)">&mdash;</py:if>
+				</td>
 				<td class="right">${req_link('')}</td>
 				<td class="right">${req_link('READY')}</td>
 				<td class="right">${req_link('PROCESSING')}</td>
@@ -58,8 +61,8 @@ License along with WeBIAS. If not, see
 				<td class="right">${req_link('FINISHED')}</td>
 				<!--				<td><a py:if="not app.enabled" href="delete/${app.id}">Delete</a></td>-->
 				<td>
-					<a py:if="not app.enabled" href="enable/${app.id}">Enable</a>
-					<a py:if="app.enabled" href="disable/${app.id}">Disable</a>
+					<a py:if="loaded_test(app) and not app.enabled" href="enable/${app.id}">Enable</a>
+					<a py:if="loaded_test(app) and app.enabled" href="disable/${app.id}">Disable</a>
 				</td>
 			</tr>
 		</table>		
