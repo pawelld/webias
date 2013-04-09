@@ -57,6 +57,12 @@ class FieldValue():
 
         res+=self._getId()
 
+        try:
+            idx=self.idx
+            res+='/'+str(idx)
+        except:
+            pass
+
         return res
 
     def _printValue(self):
@@ -130,16 +136,6 @@ class FieldGroupValue(FieldValue):
     def _store(self, session, req):
         for c in self._children:
             c._store(session, req)
-
-class FieldVarGroupElement(FieldGroupValue):
-    def __init__(self, field, idx):
-        FieldGroupValue.__init__(self, field)
-        self._idx=idx
-        self._type='varelement'
-
-    def _getId(self):
-        return self._idx
-
 
 class FormValues(FieldGroupValue):
     def __init__(self):
