@@ -21,9 +21,12 @@ import time, syslog, os, sys, traceback, platform
 import sqlalchemy
 import data
 import glob
+import imp
 from genshi.template import NewTextTemplate
 import gnosis.xml.objectify as objectify
 from template import *
+
+SLEEP_TIME=5
 
 config=None
 
@@ -38,7 +41,8 @@ class SchedDaemon(Daemon):
             'stop': self.stop,
             'restart': self.restart,
             'foreground': self.foreground,
-            'removelock': self.removelock
+            'removelock': self.removelock,
+            'ensurerunning': self.ensurerunning
         }
 
         if len(sys.argv) >= 3:
@@ -49,9 +53,11 @@ class SchedDaemon(Daemon):
                 print "Unknown command"
                 sys.exit(2)
 
-            try:
-                config=__import__(self.config_file)
+            if not os.path.exists(self.config_file):
+                self.config_file+='.py'
 
+            try:
+                config=imp.load_source('config', self.config_file)
             except:
                 print "Cannot load config file: %s\n" % (self.config_file)
                 sys.exit(2)
@@ -64,7 +70,7 @@ class SchedDaemon(Daemon):
                 except:
                     self.sched_id=sched_class.default_id
         else:
-            print "usage: %s start|stop|restart|foreground|removelock config_file [sched_id]" % sys.argv[0]
+            print "usage: %s start|stop|restart|foreground|removelock|ensurerunning config_file [sched_id]" % sys.argv[0]
             sys.exit(2)
 
 
@@ -98,6 +104,39 @@ class SchedDaemon(Daemon):
         self.scheduler=self.sched_class(self.sched_id, config)
         self.scheduler.release_lock('FORCED')
 
+    def ensurerunning(self):
+        self.scheduler=self.sched_class(self.sched_id, config)
+        self.scheduler.get_lock()
+        if(self.scheduler.host != platform.node()):
+            msg="Scheduler %s is running on a different host (%s)." % (self.sched_id, self.scheduler.host)
+            syslog.syslog(msg)
+            raise Exception(msg)
+
+        pid=self.scheduler.pid
+
+        if self.isrunning(pid):
+            secs=self.scheduler.last_ping(self.scheduler.Session())
+            if secs > 5 * SLEEP_TIME:
+                msg="Scheduler %s (PID %s) is running but seems unresponsive (last activity %d seconds ago)."%(self.sched_id, pid, int(secs+0.5))
+                syslog.syslog(msg)
+                print msg
+            else:
+                msg="Scheduler %s (PID %s) seems to be healthy."%(self.sched_id, pid)
+                syslog.syslog(msg)
+                print msg
+                return
+        else:
+            msg="Scheduler %s (PID %s) is not running."%(self.sched_id, pid)
+            syslog.syslog(msg)
+            print msg
+
+        msg="Restarting scheduler %s."%(self.sched_id)
+        syslog.syslog(msg)
+        print msg
+
+        self.removelock()
+        self.start()
+
 
 class Scheduler:
     default_id='default'
@@ -115,14 +154,14 @@ class Scheduler:
 
     def run_once(self):
         self.reap()
-        time.sleep(5)
+        time.sleep(SLEEP_TIME)
         self.sow()
         
     def run(self):
         while not self.terminate:
             try:
                 self.run_once()
-                time.sleep(5)
+                time.sleep(SLEEP_TIME)
             except RuntimeError,msg:
                 if msg:
                     syslog.syslog(msg)
@@ -378,6 +417,11 @@ class Scheduler:
         dbsched=session.query(data.Scheduler).get(self.sched_id)
         dbsched.last_act=time.strftime("%Y-%m-%d %H:%M:%S")
         session.commit()
+
+    def last_ping(self, session):
+        dbsched=session.query(data.Scheduler).get(self.sched_id)
+        last_act=time.mktime(time.strptime(str(dbsched.last_act), "%Y-%m-%d %H:%M:%S"))
+        return time.mktime(time.localtime())-last_act
 
     def reap(self):
         session=self.Session()

@@ -114,6 +114,20 @@ class Daemon:
             print str(err)
             sys.exit(1)
 
+    def isrunning(self, pid):
+        """
+        Check if a process exists
+        """
+
+        try:
+            os.kill(pid, 0)
+        except OSError, e:
+            import errno
+            return e.errno == errno.EPERM
+        else:
+            return True
+
+
     def restart(self):
         """
         Restart the daemon
