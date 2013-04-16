@@ -108,7 +108,12 @@ xmlns:xi="http://www.w3.org/2001/XInclude">
 			</div>
 		</py:def>
 
-		<span py:def="opt(el)" class="star" py:if="not el.isOptional()">*</span>
+		<py:def function="opt(el)">
+			<py:choose test="el.__class__.__name__">
+			<span py:when="'VarGroup'" class="star" py:if="el.getMax()>0 or el.getMin()>0">*<span class="starsup">(<py:if test="el.getMin()>0">${el.getMin()}</py:if>-<py:if test="el.getMax()>0">${el.getMax()}</py:if>)</span></span>
+				<span py:otherwise="" class="star" py:if="not el.isOptional()">*</span>
+			</py:choose>
+		</py:def>
 
 		<a py:def="help(el)" py:if="hasattr(el,'help')" href="${el.app().setup.help_url.PCDATA}${el.help}" target="_blank"><img src="${media}/help.png"/></a>
 
@@ -156,7 +161,7 @@ xmlns:xi="http://www.w3.org/2001/XInclude">
 		</div>
 
 		<div py:def="field_VarGroup(el)" py:with="name=el.getFormName(); id=name.replace('/','-'); strip=len(el.children())==1 and isinstance(el.children()[0], field.Group)" id="${id}" class="vargroup ${id}" >
-			<div class="section element" py:attrs="{'title': getattr(el, 'tooltip',None)}">${el.title}${help(el)}<button type="button" id="${id}-add" class="add" onclick="addElement(event);">Add</button></div>
+			<div class="section element" py:attrs="{'title': getattr(el, 'tooltip',None)}">${el.title}${opt(el)}${help(el)}<button type="button" id="${id}-add" class="add" onclick="addElement(event);">Add</button></div>
 
 
 			<py:if test="query != None">

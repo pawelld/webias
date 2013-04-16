@@ -161,6 +161,11 @@ div.submit button {
 	color: red;
 }
 
+.form .star .starsup {
+	vertical-align: super;
+	font-size: .65em;
+}
+
 div.login .message {
 	font-weight: bold;
 	color: red;

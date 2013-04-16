@@ -508,6 +508,12 @@ class VarGroup(Field):
         except:
             return 0
 
+    def getMin(self):
+        try:
+            return self.min
+        except:
+            return 0
+
     def _getFormNameRec(self):
         return ''
 
