@@ -25,7 +25,16 @@ import time
 import data 
 import query
 import field
-import biofield
+
+import sys, traceback
+
+
+try:
+    import biofield
+except ImportError:
+    print ''.join(traceback.format_exception(*sys.exc_info()))
+    
+    print 'Failed to import biofield module. Bioinformatics fields will be disabled'
 
 import auth
 
