@@ -20,6 +20,7 @@ import cherrypy
 import config
 
 import time
+import datetime
 
 import data 
 
@@ -117,20 +118,23 @@ cherrypy.tools.error_recorder = cherrypy.Tool('after_error_response', error_reco
 
 class Hits:
     title="Hits"
-    caption="Show all HTTP hits."
+    caption="Show HTTP hits in the last 30 days."
 
     @cherrypy.expose
     @persistent
     def index(self, p=1,**kwargs):
+
+        date=str(datetime.date.today()-datetime.timedelta(30))
+
         session=cherrypy.request.db
 
-        q=session.query(data.Hit)
+        q=session.query(data.Hit).filter(data.Hit.date>=date).order_by(data.Hit.id.desc())
 
         return render_query_paged('statistics_hits.genshi', q, int(p), 'hits', config.APP_ROOT+"/statistics/hits/",kwargs)
 
 class Sessions:
     title="Sessions"
-    caption="Show all distinct sessions."
+    caption="Show distinct sessions in the last 90 days."
 
     class CoerceToInt(sqlalchemy.types.TypeDecorator):
         impl = sqlalchemy.types.Integer
@@ -145,9 +149,10 @@ class Sessions:
     def index(self, p=1):
         session=cherrypy.request.db
 
+        date=str(datetime.date.today()-datetime.timedelta(90))
 
 #        q=session.query(data.Hit, sqlalchemy.func.count(data.Hit.id), sqlalchemy.func.sum(sqlalchemy.sql.expression.case([(data.Hit.req_sub==True, 1)],else_=0))).group_by(data.Hit.session, data.Hit.ip_address).order_by(data.Hit.id)#.add_column(
-        q=session.query(data.Hit, sqlalchemy.func.count(data.Hit.id).label('num_hits'), sqlalchemy.func.sum(sqlalchemy.sql.expression.cast(data.Hit.req_sub, sqlalchemy.types.Integer), type_=self.CoerceToInt).label('num_reqs')).group_by(data.Hit.session, data.Hit.ip_address).order_by(data.Hit.id)#.add_column(
+        q=session.query(data.Hit, sqlalchemy.func.count(data.Hit.id).label('num_hits'), sqlalchemy.func.sum(sqlalchemy.sql.expression.cast(data.Hit.req_sub, sqlalchemy.types.Integer), type_=self.CoerceToInt).label('num_reqs')).group_by(data.Hit.session, data.Hit.ip_address).filter(data.Hit.date>=date).order_by(data.Hit.id.desc())#.add_column(
 #        q=session.query(data.Hit.date, data.Hit.user_login, data.Hit.ip_address, data.Hit.domain, data.Hit.session, sqlalchemy.func.count(data.Hit.id).label('num_hits'), sqlalchemy.func.sum(sqlalchemy.sql.expression.cast(data.Hit.req_sub, sqlalchemy.types.Integer), type_=CoerceToInt).label('num_reqs')).group_by(data.Hit.session, data.Hit.ip_address).order_by(data.Hit.id)#.add_column(
 
         return render_query_paged('statistics_sessions.genshi', q, int(p), 'sessions', config.APP_ROOT+"/statistics/sessions/")
@@ -174,14 +179,16 @@ class Sessions:
 
 class Errors:
     title="Errors"
-    caption="Show error log."
+    caption="Show errors which occured in the last 90 days."
 
     @cherrypy.expose
     @persistent
     def index(self, p=1):
         session=cherrypy.request.db
 
-        q=session.query(data.Error)
+        date=str(datetime.date.today()-datetime.timedelta(90))
+
+        q=session.query(data.Error).filter(data.Error.date>=date).order_by(data.Error.hit_id.desc())
 
         return render_query_paged('statistics_errors.genshi', q, int(p), 'errors', config.APP_ROOT+"/statistics/errors/")
 
