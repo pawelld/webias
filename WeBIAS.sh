@@ -1,4 +1,5 @@
 #!/bin/bash
+# chkconfig: 345 95 05
 
 . /etc/init.d/functions
 
