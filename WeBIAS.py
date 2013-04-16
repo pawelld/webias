@@ -226,6 +226,19 @@ class WeBIAS:
 #    def lowerror(self):
 #        abcabv.asd=0
 
+    @cherrypy.expose
+    def page(self, *path):
+        import genshi.template
+    
+        for i in range(len(path), 0, -1):
+            template='/'.join(['page']+list(path[0:i]))+'.genshi'
+#            try:
+            return render(template, par=path[i:])
+#            except genshi.template.TemplateNotFound:
+#                pass
+
+        raise cherrypy.HTTPError(404)
+            
 
     def _cp_dispatch(self, vpath):
         res=self.root._cp_dispatch(vpath)
