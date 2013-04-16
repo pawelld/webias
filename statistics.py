@@ -128,7 +128,10 @@ class Hits:
 
         session=cherrypy.request.db
 
-        q=session.query(data.Hit).filter(data.Hit.date>=date).order_by(data.Hit.id.desc())
+        if kwargs=={}:
+            q=session.query(data.Hit).filter(data.Hit.date>=date).order_by(data.Hit.id.desc())
+        else:
+            q=session.query(data.Hit).order_by(data.Hit.id.desc())
 
         return render_query_paged('statistics_hits.genshi', q, int(p), 'hits', config.APP_ROOT+"/statistics/hits/",kwargs)
 
@@ -151,9 +154,7 @@ class Sessions:
 
         date=str(datetime.date.today()-datetime.timedelta(90))
 
-#        q=session.query(data.Hit, sqlalchemy.func.count(data.Hit.id), sqlalchemy.func.sum(sqlalchemy.sql.expression.case([(data.Hit.req_sub==True, 1)],else_=0))).group_by(data.Hit.session, data.Hit.ip_address).order_by(data.Hit.id)#.add_column(
-        q=session.query(data.Hit, sqlalchemy.func.count(data.Hit.id).label('num_hits'), sqlalchemy.func.sum(sqlalchemy.sql.expression.cast(data.Hit.req_sub, sqlalchemy.types.Integer), type_=self.CoerceToInt).label('num_reqs')).group_by(data.Hit.session, data.Hit.ip_address).filter(data.Hit.date>=date).order_by(data.Hit.id.desc())#.add_column(
-#        q=session.query(data.Hit.date, data.Hit.user_login, data.Hit.ip_address, data.Hit.domain, data.Hit.session, sqlalchemy.func.count(data.Hit.id).label('num_hits'), sqlalchemy.func.sum(sqlalchemy.sql.expression.cast(data.Hit.req_sub, sqlalchemy.types.Integer), type_=CoerceToInt).label('num_reqs')).group_by(data.Hit.session, data.Hit.ip_address).order_by(data.Hit.id)#.add_column(
+        q=session.query(data.Hit, sqlalchemy.func.count(data.Hit.id).label('num_hits'), sqlalchemy.func.sum(sqlalchemy.sql.expression.cast(data.Hit.req_sub, sqlalchemy.types.Integer), type_=self.CoerceToInt).label('num_reqs')).group_by(data.Hit.session, data.Hit.ip_address).filter(data.Hit.date>=date).order_by(data.Hit.id.desc())
 
         return render_query_paged('statistics_sessions.genshi', q, int(p), 'sessions', config.APP_ROOT+"/statistics/sessions/")
 
@@ -188,7 +189,7 @@ class Errors:
 
         date=str(datetime.date.today()-datetime.timedelta(90))
 
-        q=session.query(data.Error).filter(data.Error.date>=date).order_by(data.Error.hit_id.desc())
+        q=session.query(data.Error).filter(data.Error.date>=date).order_by(data.Error.hit_id.desc()).filter(data.Error.date>=date).order_by(data.Error.hit_id.desc())
 
         return render_query_paged('statistics_errors.genshi', q, int(p), 'errors', config.APP_ROOT+"/statistics/errors/")
 
