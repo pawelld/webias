@@ -29,7 +29,6 @@ SERVER_NAME="WeBIAS site"
 APP_ROOT="/WeBIAS"
 SERVER_URL="http://localhost/"+APP_ROOT
 CSS_URL=APP_ROOT+"/media/WeBIAS.css"
-IMG_URL=APP_ROOT+"/media"
 
 #path for working and executables directory
 BIAS_DIR="/var/www/WeBIAS"

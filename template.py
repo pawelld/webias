@@ -137,7 +137,7 @@ class TemplateProcessor:
             pass
 
         try:
-            args.media=self.config.IMG_URL
+            args.media=self.config.APP_ROOT+'/media'
         except:
             pass
 
