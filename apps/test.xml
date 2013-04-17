@@ -7,9 +7,9 @@
     <author>Bioexploratorium</author>
     <email>pawel@bioexploratorium.pl</email>
     <setup>
-      <help_url>/media/test-help.html</help_url>
-	  <param_template>/var/www/WeBIAS/examples/test.py --name="${name.PCDATA}" --mood=${mood.PCDATA}</param_template>
-	  <param_table_template>examples/Test/param_table.genshi</param_table_template>
+		<help_url>/WeBIASDemo/page/Test/help</help_url>
+		<param_template>/var/www/WeBIAS/examples/test.py --name="${name.PCDATA}" --mood=${mood.PCDATA}</param_template>
+		<param_table_template>examples/Test/param_table.genshi</param_table_template>
     </setup>
     
     <parameters>

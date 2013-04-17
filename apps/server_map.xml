@@ -2,7 +2,9 @@
 
 <appgroup id="Examples" name="Examples" info="WeBIAS examples">
 	<description>
-		WeBIAS examples.
+		<p>WeBIAS examples.</p>
+
+		<a href="/WeBIASDemo/page/example">Sample static page.</a>
 	</description>
 	<appgroupentry appid="Test"></appgroupentry>
 	<appgroupentry appid="groups"></appgroupentry>
