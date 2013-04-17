@@ -22,6 +22,9 @@ import cherrypy
 import sys
 
 import gnosis.xml.objectify as objectify
+
+objectify.keep_containers(1)
+
 import config
 import os,glob
 
