@@ -1,19 +1,19 @@
 # Copyright 2013 Pawel Daniluk, Bartek Wilczynski
-# 
+#
 # This file is part of WeBIAS.
-# 
+#
 # WeBIAS is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as 
-# published by the Free Software Foundation, either version 3 of 
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of
 # the License, or (at your option) any later version.
-# 
+#
 # WeBIAS is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
-# 
-# You should have received a copy of the GNU Affero General Public 
-# License along with WeBIAS. If not, see 
+#
+# You should have received a copy of the GNU Affero General Public
+# License along with WeBIAS. If not, see
 # <http://www.gnu.org/licenses/>.
 
 from daemon import Daemon
@@ -65,7 +65,7 @@ class SchedDaemon(Daemon):
             if len(sys.argv) >= 4:
                 self.sched_id=sys.argv[3]
             else:
-                try: 
+                try:
                     self.sched_id=config.SCHED_ID
                 except:
                     self.sched_id=sched_class.default_id
@@ -79,14 +79,14 @@ class SchedDaemon(Daemon):
 
     def schedrun(self):
         self.ops.get(self.op)()
-    
+
 
     def run(self):
         self.scheduler=self.sched_class(self.sched_id, config)
         self.scheduler.grab_lock()
         self.scheduler.run()
         self.scheduler.release_lock()
-    
+
     def stop(self):
         self.scheduler=self.sched_class(self.sched_id, config)
         self.scheduler.get_lock()
@@ -156,7 +156,7 @@ class Scheduler:
         self.reap()
         time.sleep(SLEEP_TIME)
         self.sow()
-        
+
     def run(self):
         while not self.terminate:
             try:
@@ -178,11 +178,11 @@ class Scheduler:
                 session.commit()
             except:
                 pass
-    
+
         got_lock=False
         try:
             dbsched=session.query(data.Scheduler).with_lockmode('update').get(self.sched_id)
-            
+
             if dbsched.status!='STOPPED':
                 raise Exception("Scheduler %s already has status %s." % (self.sched_id, dbsched.status))
 
@@ -193,7 +193,7 @@ class Scheduler:
             except:
                 config.APPS=None
 
-            if config.APPS != None: 
+            if config.APPS != None:
                 dbapps=session.query(data.Application).filter(data.Application.id.in_(config.APPS)).all()
             else:
                 dbapps=session.query(data.Application).all()
@@ -225,14 +225,14 @@ class Scheduler:
 
         try:
             dbsched=session.query(data.Scheduler).with_lockmode('update').get(self.sched_id)
-            
+
             if dbsched.status!='STOPPED':
                 dbsched.status='STOPPED'
                 for dbschedlock in dbsched.locks:
                     if dbschedlock.lock_end==None:
                         dbschedlock.lock_end=time.strftime("%Y-%m-%d %H:%M:%S")
                         dbschedlock.status=status
-                        
+
                 session.commit()
             else:
                 raise Exception("Scheduler %s is already stopped." % (self.sched_id))
@@ -247,20 +247,20 @@ class Scheduler:
 
         try:
             dbsched=session.query(data.Scheduler).get(self.sched_id)
-            
+
             if dbsched.status!='STOPPED':
                 for dbschedlock in dbsched.locks:
                     if dbschedlock.lock_end==None:
                         self.pid=dbschedlock.pid
                         self.host=dbschedlock.host
-                        
+
             else:
                 raise Exception("Scheduler %s is not running." % (self.sched_id))
         except Exception, e:
             print "Failed to get lock info. %s\n" % (e)
             session.close()
             sys.exit(2)
-        
+
         session.close()
 
     def running_reqs(self):
@@ -268,9 +268,9 @@ class Scheduler:
         reqs.get_all("status='PROCESSING' AND sched_id='%s'"%self.sched_id)
         return reqs
 
-        
+
     def get_uncollected_runs(self,session):
-        runs=session.query(data.Run).filter(data.Run.status=='RUNNING' and data.Request.sched == self.dbsched).all()
+        runs=session.query(data.Run).join(data.Request).filter(data.Run.status=='RUNNING', data.Request.sched == self.dbsched).all()
 
         for run in runs:
             if not self.is_running(run.pid):
@@ -279,7 +279,7 @@ class Scheduler:
     def grab_request(self,session):
         dbsched=session.query(data.Scheduler).get(self.sched_id)
 
-        req=session.query(data.Request).with_lockmode('update').filter(data.Request.status=='READY' and data.Request.sched == None).filter(data.Request.app_id.in_(config.APPS)).first()
+        req=session.query(data.Request).with_lockmode('update').join(data.Request).filter(data.Request.status=='READY', data.Request.sched == None, data.Request.app_id.in_(config.APPS)).first()
 
         if req != None:
             req.sched=dbsched
@@ -296,7 +296,7 @@ class Scheduler:
         self.conn.execute("SELECT * from Runs where id=%d and sched_id='%s'"%(id,self.sched_id))
         run = self.conn.fetchone()
         return Run(self.conn,*run)
-    
+
     def launch(self,session,req):
         from tempfile import mkstemp
         from os import write,close
@@ -321,7 +321,7 @@ class Scheduler:
             fh.close()
 
 
-            files=session.query(data.File).filter(data.File.request == req and data.File.type == 'input')
+            files=session.query(data.File).filter(data.File.request == req, data.File.type == 'input')
 
             for f in files:
                 f.write(JOB_DIR)
@@ -349,7 +349,7 @@ class Scheduler:
 
         resfile='%s/%s'%(job_dir,config.RES_FILE)
         errfile='%s/%s'%(job_dir,config.ERR_FILE)
-        
+
         ok=False
 
         self.running-=1
@@ -377,7 +377,7 @@ class Scheduler:
 
             for fname in files:
                 (path,name)=data.File.split_name(fname[len(job_dir)+1:])
-                
+
                 file=data.File(request=req, run=run, path=path, name=name, data=open(fname,'r').read(), type='output')
                 session.add(file)
         else:
@@ -397,11 +397,11 @@ class Scheduler:
         This function should be implemented in executable scheduler module.
         id variable is used for passing running job pid from database for
         determination of job's status.
-        The function hast to return True if the job is running and False if it is not.            
+        The function hast to return True if the job is running and False if it is not.
         """
         raise NotImplementedError
 
-    
+
     def queue_run(self,JOB_DIR,command,errfile,outfile):
         """
         This function should be implemented in executable scheduler module.
@@ -429,7 +429,7 @@ class Scheduler:
         for run in self.get_uncollected_runs(session):
             self.collect(session,run)
         session.close()
-    
+
     def sow(self):
         session=self.Session()
 
@@ -442,7 +442,7 @@ class Scheduler:
                 break
 
         session.close()
-    
- 
 
-      
+
+
+
