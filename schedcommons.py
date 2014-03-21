@@ -270,7 +270,7 @@ class Scheduler:
 
 
     def get_uncollected_runs(self,session):
-        runs=session.query(data.Run).join(data.Request).filter(data.Run.status=='RUNNING', data.Request.sched == self.dbsched).all()
+        runs=session.query(data.Run).join(data.Request).filter(data.Run.status=='RUNNING', data.Request.sched_id == self.sched_id).all()
 
         for run in runs:
             if not self.is_running(run.pid):
@@ -279,7 +279,7 @@ class Scheduler:
     def grab_request(self,session):
         dbsched=session.query(data.Scheduler).get(self.sched_id)
 
-        req=session.query(data.Request).with_lockmode('update').join(data.Request).filter(data.Request.status=='READY', data.Request.sched == None, data.Request.app_id.in_(config.APPS)).first()
+        req=session.query(data.Request).filter(data.Request.status=='READY', data.Request.sched == None, data.Request.app_id.in_(config.APPS)).with_lockmode('update').first()
 
         if req != None:
             req.sched=dbsched
