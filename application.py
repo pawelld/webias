@@ -1,19 +1,19 @@
 # Copyright 2013 Pawel Daniluk, Bartek Wilczynski
-# 
+#
 # This file is part of WeBIAS.
-# 
+#
 # WeBIAS is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as 
-# published by the Free Software Foundation, either version 3 of 
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of
 # the License, or (at your option) any later version.
-# 
+#
 # WeBIAS is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
-# 
-# You should have received a copy of the GNU Affero General Public 
-# License along with WeBIAS. If not, see 
+#
+# You should have received a copy of the GNU Affero General Public
+# License along with WeBIAS. If not, see
 # <http://www.gnu.org/licenses/>.
 
 
@@ -22,7 +22,7 @@ import cherrypy
 import gnosis.xml.objectify as objectify
 import config
 import time
-import data 
+import data
 import query
 import field
 
@@ -32,9 +32,7 @@ import sys, traceback
 try:
     import biofield
 except ImportError:
-    print ''.join(traceback.format_exception(*sys.exc_info()))
-    
-    print 'Failed to import biofield module. Bioinformatics fields will be disabled'
+    cherrypy.engine.log('Failed to import biofield module. Bioinformatics fields will be disabled')
 
 import auth
 
@@ -52,16 +50,17 @@ class Description(objectify._XO_):
 
 
 class Application(objectify._XO_):
+
     @staticmethod
     def get_run(session, request, runid=None):
         run=request.get_run(runid)
-    
+
         if run==None:
             if runid!=None:
                 raise cherrypy.HTTPError(400, "Please provide a valid runid or none.")
             else:
                 raise cherrypy.HTTPError(400, "No run found.")
-        
+
         return run
 
     @staticmethod
@@ -86,11 +85,18 @@ class Application(objectify._XO_):
                 __import__(m.PCDATA)
         return super(Application, self).__setattr__(item, value)
 
-    def app_acl(self, *args, **kwargs):
-        try:
-            return eval(self.acl.PCDATA)
-        except:
-            return ['any']
+
+    def get_dbapp(self):
+        session = cherrypy.request.db
+        return data.Application.get_app(session, self.id)
+
+    @property
+    def _acl(self):
+        dbapp = self.get_dbapp()
+        acl = dbapp.get_acl()
+
+        return acl
+
 
     def get_user(self, session, pars):
         try:
@@ -101,7 +107,7 @@ class Application(objectify._XO_):
         return data.User.get_by_email(session, email, insert=True)
 
     def is_available(self):
-        return self.enabled and auth.ForceLogin().match_acl(self.app_acl(), auth.get_login())
+        return self.enabled and auth.ForceLogin().match_acl(self._acl, auth.get_login())
 
     def store_query(self, session, pars):
         user=self.get_user(session, pars)
@@ -109,8 +115,8 @@ class Application(objectify._XO_):
         date=time.strftime("%Y-%m-%d %H:%M:%S")
         uid=uuid.uuid1().hex
         ip_address=cherrypy.request.remote.ip
-        
-        print "query::"+pars._makeXML()
+
+        # print "query::"+pars._makeXML()
         req=data.Request(date=date, status="CREATING", uuid=uid, ip_address=ip_address, user=user, app_id=self.id, query=pars._makeXML(), session=cherrypy.session.id)
         session.add(req)
         pars._store(session, req)
@@ -121,30 +127,29 @@ class Application(objectify._XO_):
     def render_form(self, query=None):
         return render('form.genshi', app=self, description=str(self.description), parameters=self.parameters, query=query)
 
-    @cherrypy.expose    
-    @auth.with_acl(app_acl)
+    @cherrypy.expose
+    # @auth.with_acl(app_acl)
     @persistent
     def index(self):
         return self.render_form()
-         
+
     def validate_acl(self, *args, **kwargs):
         status, messages, pars=self.parameters.process_parameters(kwargs)
 
         cherrypy.session['validate_result']=[status, messages, pars]
-        
-        if status!='VALID': 
-            return self.app_acl(*args, **kwargs)
+
+        if status!='VALID':
+            return self._acl
         else:
             return self.submit_acl(*args, **kwargs)
 
-        
+
 
     def submit_acl(self, *args, **kwargs):
-
         val=field.Email().process_parameters(kwargs)[2]
 
         if val==None:
-            return self.app_acl(*args, **kwargs)
+            return self._acl
         else:
             email=val._getValue()
 
@@ -152,12 +157,15 @@ class Application(objectify._XO_):
             user=data.User.get_by_email(session, email, insert=False)
 
             if user==None or user.login==None:
-                return self.app_acl(*args, **kwargs)
+                return self._acl
             else:
-                return [[user.login],'admin']
+                if auth.ForceLogin.match_acl(self._acl, user.login):
+                    return [[user.login],'admin']
+                else:
+                    return ['admin']
 
     def submit_int(self, status, messages, pars, nobase=False):
-        if status!='VALID': 
+        if status!='VALID':
             return render('form_error.genshi',app=self, errors=[m.message for m in messages],nobase=nobase)
         else:
             session=cherrypy.request.db
@@ -167,8 +175,8 @@ class Application(objectify._XO_):
                 email=False
             else:
                 email=True
-                util.email(req.user.e_mail,'email_scheduled.genshi',app=self,uuid=req.uuid)      
-            
+                util.email(req.user.e_mail,'email_scheduled.genshi',app=self,uuid=req.uuid)
+
             return render('msg_scheduled.genshi',app=self,uuid=req.uuid,email=email,nobase=nobase)
 
 
@@ -222,7 +230,7 @@ class Application(objectify._XO_):
             l=[request.user.login]
         else:
             l='any'
-            
+
         return [l, 'admin']
 
     @cherrypy.expose
@@ -232,7 +240,7 @@ class Application(objectify._XO_):
         session=cherrypy.request.db
 
         request=data.Request.get_request(session,uuid)
-        
+
         return self.render_result(uuid, request.user.login, request.tag, request.starred, request.query)
 
     @cherrypy.expose
@@ -267,12 +275,12 @@ class Application(objectify._XO_):
         except cherrypy.HTTPError as e:
             if runid==None:
                 file=self.get_file(session,request,pathname)
-            else:    
+            else:
                 raise e
 
         ext=file.name.split('.')[-1]
 
-        cherrypy.response.headers['Content-disposition']="attachment; filename=%s"%file.name    
+        cherrypy.response.headers['Content-disposition']="attachment; filename=%s"%file.name
         if ext in config.MIME_TYPES:
             cherrypy.response.headers['Content-type']=config.MIME_TYPES[ext]
             if config.MIME_TYPES[ext]=='text/html':
@@ -281,11 +289,11 @@ class Application(objectify._XO_):
             cherrypy.response.headers['Content-type']='application/octet-stream'
 
         return file.data
-          
+
 class AppGroup():
     def __init__(self, apps=[]):
         self.elements={}
-    
+
         for app in apps:
             self.addEntry(app)
 
@@ -364,6 +372,10 @@ class AppGroupEntry():
 
     def is_available(self):
         return self.app.is_available()
+
+    @property
+    def _acl(self):
+        return self.app._acl
 
     @cherrypy.expose
     @persistent

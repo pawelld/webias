@@ -1,19 +1,19 @@
 # Copyright 2013 Pawel Daniluk, Bartek Wilczynski
-# 
+#
 # This file is part of WeBIAS.
-# 
+#
 # WeBIAS is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as 
-# published by the Free Software Foundation, either version 3 of 
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of
 # the License, or (at your option) any later version.
-# 
+#
 # WeBIAS is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
-# 
-# You should have received a copy of the GNU Affero General Public 
-# License along with WeBIAS. If not, see 
+#
+# You should have received a copy of the GNU Affero General Public
+# License along with WeBIAS. If not, see
 # <http://www.gnu.org/licenses/>.
 
 import sys, os, time, signal, syslog
@@ -38,34 +38,34 @@ class Daemon:
 
     def daemonize(self):
         """
-        do the UNIX double-fork magic, see Stevens' "Advanced 
+        do the UNIX double-fork magic, see Stevens' "Advanced
         Programming in the UNIX Environment" for details (ISBN 0201563177)
         http://www.erlenstar.demon.co.uk/unix/faq_2.html#SEC16
         """
 
-        try: 
-            pid = os.fork() 
+        try:
+            pid = os.fork()
             if pid > 0:
                 # exit first parent
-                sys.exit(0) 
-        except OSError, e: 
+                sys.exit(0)
+        except OSError, e:
             sys.stderr.write("fork #1 failed: %d (%s)\n" % (e.errno, e.strerror))
             sys.exit(1)
 
         # decouple from parent environment
-        os.chdir("/") 
-        os.setsid() 
-        os.umask(0) 
+        os.chdir("/")
+        os.setsid()
+        os.umask(0)
 
         # do second fork
-        try: 
-            pid = os.fork() 
+        try:
+            pid = os.fork()
             if pid > 0:
                 # exit from second parent
-                sys.exit(0) 
-        except OSError, e: 
+                sys.exit(0)
+        except OSError, e:
             sys.stderr.write("fork #2 failed: %d (%s)\n" % (e.errno, e.strerror))
-            sys.exit(1) 
+            sys.exit(1)
 
         # redirect standard file descriptors
         sys.stdout.flush()
@@ -104,7 +104,7 @@ class Daemon:
         """
         Stop the daemon
         """
-        # Try killing the daemon process	
+        # Try killing the daemon process
         try:
             syslog.syslog("Stopping daemon running with PID %s"%(pid))
             while 1:
@@ -139,12 +139,6 @@ class Daemon:
         """
         You should override this method when you subclass Daemon. It will be called after the process has been
         daemonized by start() or restart().
-        """
-
-    def poststop(self):
-        """
-        You should override this method when you subclass Daemon. It will be called just after the process has been
-        stopped by stop() or restart().
         """
 
     def cleanup(self):

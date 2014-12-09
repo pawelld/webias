@@ -28,6 +28,9 @@ License along with WeBIAS. If not, see
 
 		<?python
 			from itertools import cycle
+
+            def is_poweruser(user):
+                return user.role_name == 'POWER'
 		?>
 
 		<table class="table" style="width: auto;" py:with="cls=cycle(('odd','even'))" >
@@ -35,6 +38,7 @@ License along with WeBIAS. If not, see
 				<th>Join date</th>
 				<th>Login</th>
 				<th>E-Mail</th>
+                <th>Poweruser</th>
 				<th>Status</th>
 				<th>Last login</th>
 				<th>Requests</th>
@@ -48,7 +52,8 @@ License along with WeBIAS. If not, see
 					<td>${usr.date}</td>
 					<td>${usr.login}</td>
 					<td>${usr.e_mail}</td>
-					<td>${usr.status}</td>
+                    <td align="center">${'Yes' if (is_poweruser(usr) or usr.id==0) else ''}</td>
+					<td align="center">${usr.status}</td>
 					<td>${usr.last_login}</td>
 				</py:if>
 
@@ -61,9 +66,11 @@ License along with WeBIAS. If not, see
 					<a py:if="usr.status in ('NEW','FORGOTTEN')" href="resend/${usr.id}">Resend</a>
 					<a py:if="usr.status in ('OK','FORGOTTEN') and usr.id>0" href="block/${usr.id}">Block</a>
 					<a py:if="usr.status in ('BLOCKED',)" href="unblock/${usr.id}">Unblock</a>
-				</td> 
+                    <a py:if="usr.status in ('OK','FORGOTTEN') and usr.id>0" href="role/${usr.id}">Role</a>
+					<a py:if="usr.status in ('OK','FORGOTTEN') and usr.id>0 and is_poweruser(usr)" href="acl/${usr.id}">ACL</a>
+				</td>
 			</tr>
-		</table>		
+		</table>
 
 		${pager(page, pages, page_addr)}
 	</body>

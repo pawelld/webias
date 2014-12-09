@@ -1,19 +1,19 @@
 # Copyright 2013 Pawel Daniluk, Bartek Wilczynski
-# 
+#
 # This file is part of WeBIAS.
-# 
+#
 # WeBIAS is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as 
-# published by the Free Software Foundation, either version 3 of 
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of
 # the License, or (at your option) any later version.
-# 
+#
 # WeBIAS is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
-# 
-# You should have received a copy of the GNU Affero General Public 
-# License along with WeBIAS. If not, see 
+#
+# You should have received a copy of the GNU Affero General Public
+# License along with WeBIAS. If not, see
 # <http://www.gnu.org/licenses/>.
 
 
@@ -51,7 +51,7 @@ class FieldValue():
 
         if self._parent != None:
             res=self._parent._getPath()
-            
+
         if res != '':
             res+='/'
 
@@ -112,7 +112,7 @@ class FieldFileValue(FieldSingleValue):
         file=data.File(request=req, path=self._getPath(), name=self._getValue().filename, data=f.read(), type='input')
         f.seek(0)
         session.add(file)
-    
+
 
 
 class FieldGroupValue(FieldValue):
@@ -186,7 +186,7 @@ class Parameters(objectify._XO_):
                 valid=v
 
         return valid, messages, res
-    
+
 
 class Field(objectify._XO_):
     valueClass=FieldSingleValue
@@ -224,7 +224,7 @@ class Field(objectify._XO_):
 
 
         return def_val
-    
+
     def getValue(self, kwds):
         try:
             data=kwds[self.getFormName()]
@@ -235,7 +235,7 @@ class Field(objectify._XO_):
 
     def isOptional(self):
         try:
-            optional=self.optional        
+            optional=self.optional
         except:
             optional="no"
 
@@ -264,7 +264,7 @@ class Field(objectify._XO_):
 
     def validate(self, kwds):
         if self.getValue(kwds) == "":
-            if self.isOptional():    
+            if self.isOptional():
                 return 'EMPTY', []
             else:
                 return 'INVALID', [Message('INVALID', self, "Parameter %s is missing!"%self.info)]
@@ -307,7 +307,7 @@ class Float(Field):
             return 'VALID', []
         except ValueError:
             return 'INVALID', [Message('INVALID', self, "Parameter %s should be an decimal number."%self.info)]
-    
+
 
 class Text(Field):
     def check_value(self,val):
@@ -346,7 +346,7 @@ class Email(Text):
             return 'VALID', []
         except ValueError:
             return 'INVALID', [Message('INVALID', self, "Parameter %s should be an e-mail address."%self.info)]
-         
+
 
 class Section(Field):
     def validate(self,kwds):
@@ -364,7 +364,7 @@ class Checkbox(Field):
         return data
 
     def validate(self,kwds):
-        if not self.getValue(kwds) and self.isOptional():    
+        if not self.getValue(kwds) and self.isOptional():
             return 'EMPTY', []
 
         return 'VALID', []
@@ -386,14 +386,14 @@ class File(Field):
             val.filename=file.name
         except KeyError:
             val=Field.getValue(self,kwds)
-        return val 
+        return val
 
     def validate(self, kwds):
-        print self.getFormName()
-        print kwds
-        print self.getValue(kwds)
+        # print self.getFormName()
+        # print kwds
+        # print self.getValue(kwds)
         if self.getValue(kwds)=='' or self.getValue(kwds).filename == "":
-            if self.isOptional():    
+            if self.isOptional():
                 return 'EMPTY', []
             else:
                 return 'INVALID', [Message('INVALID', self, "Parameter %s is missing!"%self.info)]
@@ -411,7 +411,7 @@ class File(Field):
                 return f
 
         return None
-        
+
 
 
 class Select(Field):
@@ -425,7 +425,7 @@ class Select(Field):
             return 'INVALID', [Message('INVALID', self, "Parameter %s - invalid option value."%self.info)]
         except ValueError:
             return 'INVALID', [Message('INVALID', self, "Parameter %s - option value should be integer."%self.info)]
-            
+
 class Group(Field):
     valueClass=FieldGroupValue
 
@@ -441,7 +441,7 @@ class Group(Field):
                 pass
 
         return res
-    
+
     def assign_value(self, kwds):
         raise NotImplementedError
 
@@ -529,7 +529,7 @@ class VarGroup(Field):
 
         prefixes=list(set([key.replace(name,'',1).split('/')[0]+'/' for key in kwds.keys() if key.startswith(name)]))
         prefixes.sort()
-    
+
         prefixes=[name+p for p in prefixes]
 
         idx=1

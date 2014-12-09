@@ -1,19 +1,19 @@
 # Copyright 2013 Pawel Daniluk, Bartek Wilczynski
-# 
+#
 # This file is part of WeBIAS.
-# 
+#
 # WeBIAS is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as 
-# published by the Free Software Foundation, either version 3 of 
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of
 # the License, or (at your option) any later version.
-# 
+#
 # WeBIAS is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
-# 
-# You should have received a copy of the GNU Affero General Public 
-# License along with WeBIAS. If not, see 
+#
+# You should have received a copy of the GNU Affero General Public
+# License along with WeBIAS. If not, see
 # <http://www.gnu.org/licenses/>.
 
 
@@ -26,6 +26,7 @@ from genshi.template.loader import TemplateLoader
 from genshi.template import NewTextTemplate
 
 import auth
+import util
 
 class TemplateArgs:
     def __init__(self,app=None):
@@ -51,7 +52,7 @@ class TemplateProcessor:
         from email.MIMEText import MIMEText
         from email.Utils import  formatdate
         from email import Encoders
-        
+
         msg=MIMEMultipart()
         msg["To"]      = addr
         msg["From"]    = self.config.MAIL_FROM
@@ -60,7 +61,7 @@ class TemplateProcessor:
         msg['Date'] = formatdate(localtime=True)
 
         msg.attach(MIMEText(body))
-        
+
         for file in attachments:
             part = MIMEBase('application', "octet-stream")
             #part = MIMEText('text','plain')
@@ -77,12 +78,12 @@ class TemplateProcessor:
             s.quit()
             return res
         except:
-            print "Cannot send e-mail!"
+            cherrypy.engine.log("Cannot send e-mail:\n" + msg.as_string(), 40)
 
     def email_message(self, address, file='email_generic.genshi', app=None, **kwargs):
 
         email=self.message(file=file,app=app, type='text', **kwargs)
-    
+
         try:
             (subject, body)=email.split('\n',1)
 
@@ -145,6 +146,14 @@ class TemplateProcessor:
             args.root=self.config.APP_ROOT
         except:
             pass
+
+
+        try:
+            tmp = cherrypy.request.db
+        except:
+            pass
+        else:
+            args.navigation_bar = util.get_WeBIAS().navigation_bar()
 
         args.login=auth.get_login()
 

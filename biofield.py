@@ -1,19 +1,19 @@
 # Copyright 2013 Pawel Daniluk, Bartek Wilczynski
-# 
+#
 # This file is part of WeBIAS.
-# 
+#
 # WeBIAS is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as 
-# published by the Free Software Foundation, either version 3 of 
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of
 # the License, or (at your option) any later version.
-# 
+#
 # WeBIAS is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
-# 
-# You should have received a copy of the GNU Affero General Public 
-# License along with WeBIAS. If not, see 
+#
+# You should have received a copy of the GNU Affero General Public
+# License along with WeBIAS. If not, see
 # <http://www.gnu.org/licenses/>.
 
 
@@ -84,13 +84,13 @@ class StructureCode(field.Text):
 
     def get_templates(self):
         return ['bioform.genshi']
-    
+
     def assign_value(self, valid, kwds):
         if valid=='VALID' or valid=='WARNING':
             code=self.getValue(kwds)
 
             val=util.expando()
-            
+
             db=self.getDB(code)
             handler=self.availabledbs[db]
 
@@ -103,8 +103,8 @@ class StructureCode(field.Text):
             res._value=val
 
             return res
-            
-        
+
+
         return None
 
     def getDefault(self, query=None):
@@ -127,7 +127,7 @@ class StructureCode(field.Text):
 
 
     def getDB(self, val):
-        print val
+        # print val
         for db in self.dblist:
             try:
                 self.availabledbs[db].getFile(val)
@@ -155,10 +155,10 @@ class PDBFile(field.File):
                 formname=self.getFormName()
 
             n=query.get(formname)
-            print n, n.type, hasattr(n, 'db')
+            # print n, n.type, hasattr(n, 'db')
             if n!=None and n.type == 'PDBStructure' and not hasattr(n, 'db'):
                 f=query.req.get_file(formname, n.PCDATA)
-                print formname, f
+                # print formname, f
                 return f
 
         return None
@@ -181,14 +181,14 @@ class PDBFile(field.File):
             fieldstorage.file.seek(0)
 
         return 'VALID', []
-        
+
 
 class PDBStructure(field.Group):
     valueClass=FieldPDBStructureValue
 
     def create_content(self):
         self.grouptype="XOR"
-        
+
         sources=getattr(self, 'source', "PDB, SCOP, file")
 
         srclist=[x.strip() for x in sources.split(',')]
@@ -199,7 +199,7 @@ class PDBStructure(field.Group):
         if len(dblist)>0:
             scode=StructureCode()
             scode.id="name"
-            scode.name="Insert structure code ("+' or '.join(dblist)+")" 
+            scode.name="Insert structure code ("+' or '.join(dblist)+")"
             scode.tip="insert structure code ("+' or '.join(dblist)+" format)"
             scode.info=self.info+" code"
             scode.optional="yes"
@@ -216,7 +216,7 @@ class PDBStructure(field.Group):
                 pfile.name=" or upload structure file"
             else:
                 pfile.name="Upload structure file"
-            
+
             pfile.info=self.info+" file"
             pfile.optional="yes"
             pfile.tip="upload structure file"

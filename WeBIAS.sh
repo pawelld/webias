@@ -4,7 +4,7 @@
 . /etc/init.d/functions
 
 PIDFILE=/tmp/WeBIAS.pid
-WEBIAS=/var/www/WeBIAS/WeBIAS.py
+WEBIAS=/var/WeBIAS/biasdev/WeBIAS.py
 
 # Start the service WeBIAS
 start() {

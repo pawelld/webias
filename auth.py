@@ -1,19 +1,19 @@
 # Copyright 2013 Pawel Daniluk, Bartek Wilczynski
-# 
+#
 # This file is part of WeBIAS.
-# 
+#
 # WeBIAS is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as 
-# published by the Free Software Foundation, either version 3 of 
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of
 # the License, or (at your option) any later version.
-# 
+#
 # WeBIAS is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
-# 
-# You should have received a copy of the GNU Affero General Public 
-# License along with WeBIAS. If not, see 
+#
+# You should have received a copy of the GNU Affero General Public
+# License along with WeBIAS. If not, see
 # <http://www.gnu.org/licenses/>.
 
 
@@ -22,8 +22,8 @@ import urlparse
 import config
 import time
 
-import util 
-import data 
+import util
+import data
 
 import uuid
 import sqlalchemy
@@ -60,16 +60,35 @@ def make_secure():
 
 cherrypy.tools.secure = cherrypy.Tool('before_handler', make_secure, priority=20)
 
+def safe_get_acl(feature):
+    if hasattr(feature.__class__, '_acl'):
+        return feature._acl
+    else:
+        return ['any']
+
+
 def protect(allowed):
     noauth=False
 
-    handler=cherrypy.request.handler.callable
+    try:
+        handler=cherrypy.request.handler.callable
+    except AttributeError:
+        return
 
-    if hasattr(handler, 'has_acl'):
-        handler.__func__.get_acl=True
-        noauth=handler.__func__.noauth
-        allowed=cherrypy.request.handler.__call__()
-    
+    if hasattr(handler, '_get_acl'):    # handler is a function or method decorated with with_acl
+        try:
+            handler._get_acl = True     # a function
+        except AttributeError:
+            handler.im_func._get_acl = True     # a method
+        allowed = cherrypy.request.handler()
+        noauth = getattr(handler, '_noauth', False)
+    elif hasattr(handler, '_acl'):      # handler has a _acl property (may be a class, a function or a method)
+        allowed = handler._acl
+        noauth = getattr(handler, '_noauth', False)
+    elif hasattr(handler, 'im_self') and hasattr(handler.im_self, '_acl'):    # handler has no ACL info, but if it is a method, we still can try the object it is a member of
+        allowed = handler.im_self._acl
+        noauth = getattr(handler.im_self, '_noauth', False)
+
     if cherrypy.request.method=='POST':
         handler=cherrypy.request.handler
         new_handler=cherrypy._cpdispatch.PageHandler(handler.callable, *handler.args, **handler.kwargs)
@@ -79,7 +98,7 @@ def protect(allowed):
         fl=ForceLogin(acl=allowed, action=action, noauth=noauth)
     else:
         fl=ForceLogin(acl=allowed, goto=cherrypy.url(qs=cherrypy.request.query_string), noauth=noauth)
-    
+
     if not fl.match(get_login()):
         fl.do()
     else:
@@ -162,6 +181,9 @@ class ForceLogin():
         if acl==None:
             return True
 
+        if login=='admin':
+            return True
+
         for i in acl:
             if i=='any':
                 return True
@@ -171,6 +193,11 @@ class ForceLogin():
                 return True
             elif i=='admin' and login=='admin':
                 return True
+            elif not is_sequence(i) and i.startswith('role:') and login != None:
+                session = cherrypy.request.db
+                user = data.User.get_by_login(session, login)
+                if i[5:] == user.role_name:
+                    return True
             elif is_sequence(i) and login in i:
                 return True
 
@@ -229,7 +256,7 @@ def login_form(tmpl):
 def get_login():
     try:
         return cherrypy.session.get('login')
-    except: 
+    except:
         None
 
 def set_login(login=None):
@@ -240,8 +267,8 @@ def set_login(login=None):
 
 
 def random_password():
-    f = lambda x, y: ''.join([x[random.randint(0,len(x)-1)] for i in xrange(y)]); 
-    return f(list(string.ascii_letters+string.digits), 8) 
+    f = lambda x, y: ''.join([x[random.randint(0,len(x)-1)] for i in xrange(y)]);
+    return f(list(string.ascii_letters+string.digits), 8)
 
 class Passwd():
     _cp_config={
@@ -401,7 +428,7 @@ class Login:
         session=cherrypy.request.db
         if not self.authenticate(session, login, passwd):
             fl.message="Invalid login or password."
-    
+
         return fl.do()
 
     @cherrypy.expose
@@ -425,21 +452,39 @@ class Login:
     newuser=NewUser()
     forgotten=Forgotten()
 
-
-
-def with_acl(acl_fun, noauth=False):
+def with_acl(acl, noauth=False):
     def with_acl_decorator(handler):
         def wrap_handler(self, *args, **kwargs):
-            if wrap_handler.get_acl:
-                wrap_handler.get_acl=False
-                return acl_fun(self, *args, **kwargs)
+            if wrap_handler._get_acl:
+                wrap_handler._get_acl=False
+
+                if hasattr(acl, '__len__'):
+                    return acl
+                else:
+                    return acl(self, *args, **kwargs)
             else:
                 return handler(self, *args, **kwargs)
 
-        wrap_handler.has_acl=True
-        wrap_handler.get_acl=False
-        wrap_handler.noauth=noauth
+        wrap_handler._get_acl=False
+        wrap_handler._noauth=noauth
 
         return wrap_handler
 
     return with_acl_decorator
+
+def get_acl_for_id(mode, cls, message="Bad item id."):
+    def acl(self, id, *args, **kwargs):
+        session=cherrypy.request.db
+
+        dbid=data.get_by_id(session, cls, id, message)
+
+        return dbid.get_acl(mode)
+
+    return acl
+
+def app_acl(mode):
+    return get_acl_for_id(mode, data.Application, "Bad application id.")
+
+def sched_acl(mode):
+    return get_acl_for_id(mode, data.Scheduler, "Bad scheduler id.")
+

@@ -60,7 +60,7 @@ xmlns:py="http://genshi.edgewall.org/" py:strip="" py:if="not defined('nobase') 
 								<li>Welcome ${login}</li><li><a href="${root}/login/passwd">Change password</a></li><li><a href="${root}/login/signout">Sign out</a></li>
 							</ul>
 						</py:otherwise>
-					</py:choose>	
+					</py:choose>
 				</div>
 				<py:if test="login=='admin'">
 					<script>
@@ -68,7 +68,7 @@ xmlns:py="http://genshi.edgewall.org/" py:strip="" py:if="not defined('nobase') 
 							$("div#stats").load("${root}/statistics/sessions/stats");
 							setTimeout(load_stats,30*1000);
 						};
-						$(document).ready(load_stats);
+					/*	$(document).ready(load_stats); */
 					</script>
 
 					<div id="stats">
@@ -79,20 +79,18 @@ xmlns:py="http://genshi.edgewall.org/" py:strip="" py:if="not defined('nobase') 
 
               	<div class="subheader">
 					<span class="hidden">Navigation:</span>
-					<a href="${root}">Application list</a>
-					<a py:if="login!=None" href="${root}/user/requests">My requests</a>
-					<a py:if="login=='admin'" href="${root}/admin/">Administration panel</a>
-					<a py:if="login=='admin'" href="${root}/statistics/">Statistics</a>
+
+					<a py:for="(link, descr) in navigation_bar" href="${root}/${link}">${descr}</a>
 				</div>
             </div>
 
             <!-- ======== Main Content ======== -->
-            
+
             <div id="main">
 				${select('*|text()')}
             </div>
             <!-- ======== Footer ======== -->
-            
+
             <div id="footer">
 				Administered by ${Markup(mailto)}
 				<div id="small">

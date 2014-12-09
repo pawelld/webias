@@ -1,19 +1,19 @@
 # Copyright 2013 Pawel Daniluk, Bartek Wilczynski
-# 
+#
 # This file is part of WeBIAS.
-# 
+#
 # WeBIAS is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as 
-# published by the Free Software Foundation, either version 3 of 
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of
 # the License, or (at your option) any later version.
-# 
+#
 # WeBIAS is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
-# 
-# You should have received a copy of the GNU Affero General Public 
-# License along with WeBIAS. If not, see 
+#
+# You should have received a copy of the GNU Affero General Public
+# License along with WeBIAS. If not, see
 # <http://www.gnu.org/licenses/>.
 
 import cherrypy
@@ -21,8 +21,15 @@ import config
 import urlparse
 import sqlalchemy
 import template
+import auth
 
-class expando(object): pass 
+class expando(object):
+    def __init__(self, **kwargs):
+        for k, v in kwargs:
+            setattr(self, k, v)
+
+def get_WeBIAS():
+    return cherrypy.tree.apps[config.APP_ROOT].root
 
 def gethostbyaddr(ip_address):
     try:
@@ -136,7 +143,7 @@ def render_paged(file, page, attr, fallback, app=None, **kwargs):
         if page!=1:
             raise cherrypy.HTTPRedirect(fallback)
         else:
-            raise 
+            raise
 
 def render_query_paged(file, query, page, attr, fallback, filter_kwargs={}, app=None, **kwargs):
     args=[]
@@ -186,3 +193,32 @@ def clean_session():
             cherrypy.session.pop('force_login')
 
 cherrypy.tools.clean_session = cherrypy.Tool('on_end_resource', clean_session)
+
+class FeatureList(object):
+    def get_features(self):
+        features = dict([(name, el) for name, el in self.__dict__.items() if hasattr(el, '_title')])
+        return features
+
+    @cherrypy.expose
+    @persistent
+    def index(self):
+        def sort_key(t):
+            try:
+                return t[1]._order
+            except AttributeError:
+                return t[1]._title
+
+        def matches_login(t):
+            acl = auth.safe_get_acl(t[1])
+            return auth.ForceLogin.match_acl(acl, login)
+
+        login = auth.get_login()
+
+        features = filter(matches_login, self.get_features().items())
+        features.sort(key=sort_key)
+
+        return render('feature_list.genshi', features=features, title=self._title)
+
+    @property
+    def _acl(self):
+        return sum(map(auth.safe_get_acl, self.get_features().values()), [])

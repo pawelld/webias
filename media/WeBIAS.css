@@ -752,7 +752,7 @@ table.simple th.right {
 /* Bioexploratorium additions to style */
 
 table {
-        width: 50%;
+        /* width: 50%; */
         margin: 0px auto;
 //      border-spacing: 0px;
         border-collapse: collapse;

@@ -1,0 +1,38 @@
+{#
+Copyright 2014 Pawel Daniluk, Bartek Wilczynski
+
+This file is part of WeBIAS.
+
+WeBIAS is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as 
+published by the Free Software Foundation, either version 3 of 
+the License, or (at your option) any later version.
+
+WeBIAS is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public 
+License along with WeBIAS. If not, see 
+<http://www.gnu.org/licenses/>.
+#}
+
+Recent errors
+
+Date                  User         Client address    Status       Session                                    URL
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+{% for error in items %}\
+{% python
+    import urlparse
+    error.resolve()
+    parsed_url=urlparse.urlparse(error.url)
+    short_url=urlparse.urlunparse(('','',parsed_url[2],parsed_url[3],parsed_url[4],parsed_url[5]))
+    if len(short_url)>30:
+        short_url=short_url[0:30]+'...'
+%}\
+${error.date}   ${str(error.user_login).ljust(10)}   \
+{% if error.domain==None %}${error.ip_address.ljust(15)}{% end %}\
+{% if error.domain!=None %}${error.domain.ljust(15)}{% end %}   \
+${error.status[:10].ljust(10)}   ${error.session}   ${error.url}
+{% end %}

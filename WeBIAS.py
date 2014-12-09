@@ -1,20 +1,20 @@
 #!/usr/bin/python
 # Copyright 2013 Pawel Daniluk, Bartek Wilczynski
-# 
+#
 # This file is part of WeBIAS.
-# 
+#
 # WeBIAS is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as 
-# published by the Free Software Foundation, either version 3 of 
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of
 # the License, or (at your option) any later version.
-# 
+#
 # WeBIAS is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
-# 
-# You should have received a copy of the GNU Affero General Public 
-# License along with WeBIAS. If not, see 
+#
+# You should have received a copy of the GNU Affero General Public
+# License along with WeBIAS. If not, see
 # <http://www.gnu.org/licenses/>.
 
 
@@ -29,13 +29,14 @@ import config
 import os,glob
 
 import field
-import data 
+import data
 
 import auth
 import admin
 import user
 import application
 import statistics
+import reports
 
 import sqlalchemy
 from sqlalchemy import create_engine
@@ -63,15 +64,15 @@ class WeBIAS:
                 defin=objectify.make_instance(f, p=objectify.DOM)
             except:
                 defin=None
-                print 'Invalid application definition: ', f
-                traceback.print_exc()
+                cherrypy.engine.log('Invalid application definition: %s' % f)
+                cherrypy.engine.log(''.join(traceback.format_exception(*sys.exc_info())))
 
             apps=getattr(defin,'application', [])
             groups=getattr(defin,'group', [])
 
             for app in apps:
                 if defs.has_key(app.id):
-                    print 'Application %s defined in %s and redefined in %s.' % (app.id, defs[app.id], f)
+                    cherrypy.engine.log('Application %s defined in %s and redefined in %s.' % (app.id, defs[app.id], f))
                 else:
                     defs[app.id]=f
                     dbapp=session.query(data.Application).get(app.id)
@@ -93,7 +94,7 @@ class WeBIAS:
         data.Base.metadata.create_all(engine)
 
         WeBIAS.scan_app_dir(session)
-        
+
         self.apps={}
         self.groups={}
 
@@ -101,6 +102,7 @@ class WeBIAS:
         self.admin=admin.Admin()
         self.user=user.User()
         self.statistics=statistics.Statistics()
+        self.reports=reports.Reports()
 
         dbapps=session.query(data.Application).all()
 
@@ -118,6 +120,23 @@ class WeBIAS:
         self.server_map()
         field.objectify_clean()
 
+    def navigation_bar(self):
+
+        # ACLs given below determine link rendering only.
+        full_list = [('/', 'Application list', ['any']),
+                     ('/user/requests/', 'My requests', ['user']),
+                     ('/admin/', 'Administration panel', self.admin._acl),
+                     ('/statistics/', 'Statistics', self.statistics._acl),
+                     ('/reports/', 'Reports', self.reports._acl)]
+
+
+        login = auth.get_login()
+
+        return [(addr, descr) for (addr, descr, acl) in full_list if auth.ForceLogin.match_acl(acl, login)]
+
+
+
+
     def server_map(self):
         try:
             filename=config.BIAS_DIR+'/apps/server_map.xml'
@@ -125,7 +144,7 @@ class WeBIAS:
             cherrypy.engine.autoreload.files.add(filename)
             self.store_groups(defin)
         except:
-            print 'Invalid or missing server_map.xml.'
+            cherrypy.engine.log('Invalid or missing server_map.xml.')
 
         d=dict(self.apps)
         d.update(self.groups)
@@ -145,7 +164,7 @@ class WeBIAS:
 
 
         self.root=application.AppGroup(all.values())
-        
+
     def store_groups(self, defin):
         try:
             groups=defin.appgroup
@@ -154,8 +173,8 @@ class WeBIAS:
 
         for gr in groups:
             self.groups[gr.id]=gr
-        
-                
+
+
     def deregister(self,app_id):
         self.apps[app_id].enabled=False
 
@@ -173,7 +192,7 @@ class WeBIAS:
                     app.dbapp=dbapp
 
                     if app.setup.param_template.PCDATA != dbapp.param_template:
-                        print "Updating param_template for application %s.\n"%dbapp.id
+                        cherrypy.engine.log("Updating param_template for application %s.\n"%dbapp.id)
                         dbapp.param_template=app.setup.param_template.PCDATA
 
 
@@ -183,18 +202,18 @@ class WeBIAS:
                         out_files=app.setup.output_files.PCDATA
 
                     if out_files != dbapp.output_files:
-                        print "Updating output_files for application %s.\n"%dbapp.id
+                        cherrypy.engine.log("Updating output_files for application %s.\n"%dbapp.id)
                         dbapp.output_files=app.setup.output_files.PCDATA
 
                     self.store_groups(defin)
 
                     return app
         except:
-            print "Cannot load %s required for application %s. Disabling.\n"%(filename, dbapp.id)
-            print ''.join(traceback.format_exception(*sys.exc_info()))
+            cherrypy.engine.log("Cannot load %s required for application %s. Disabling.\n"%(filename, dbapp.id))
+            cherrypy.engine.log(''.join(traceback.format_exception(*sys.exc_info())))
             dbapp.enabled=False
             return None
-    
+
 
     @cherrypy.expose
     @persistent
@@ -232,7 +251,7 @@ class WeBIAS:
     @cherrypy.expose
     def page(self, *path):
         import genshi.template
-    
+
         for i in range(len(path), 0, -1):
             template='/'.join(['page']+list(path[0:i]))+'.genshi'
 #            try:
@@ -241,7 +260,7 @@ class WeBIAS:
 #                pass
 
         raise cherrypy.HTTPError(404)
-            
+
 
     def _cp_dispatch(self, vpath):
         res=self.root._cp_dispatch(vpath)
@@ -265,7 +284,7 @@ if __name__=="__main__":
     parser.add_option("--foreground", action="store_true", dest="foreground")
     (options, args)=parser.parse_args()
 
-    if options.changepw:    
+    if options.changepw:
         auth.set_admin_pw()
         sys.exit(0)
 
@@ -275,9 +294,11 @@ if __name__=="__main__":
 
 
     PIDFile(cherrypy.engine, config.PID_FILE).subscribe()
-    cherrypy.engine.signal_handler.subscribe()  
+    cherrypy.engine.signal_handler.subscribe()
     auth.CleanupUsers(cherrypy.engine).subscribe()
     data.SAEnginePlugin(cherrypy.engine).subscribe()
+    reports.ReportSender(cherrypy.engine).subscribe()
+    statistics.DBLogPlugin(cherrypy.engine).subscribe()
     cherrypy.tools.db = data.SATool()
 
     conf={
@@ -300,7 +321,7 @@ if __name__=="__main__":
     }
 
     cherrypy.tree.mount(WeBIAS(),config.APP_ROOT, config={'/': conf, '/media':mediaconf})
-    
+
     cherrypy.config.update({
         'session_filter.on':True,
         "session_filter.timeout":600000
@@ -341,5 +362,5 @@ if __name__=="__main__":
 
     cherrypy.engine.start()
     cherrypy.engine.block()
-    
-    
+
+
