@@ -83,7 +83,7 @@ class StructureCode(field.Text):
     availabledbs={'SCOP': biodb.SCOPHandler(), 'PDB': biodb.PDBHandler()}
 
     def get_templates(self):
-        return ['bioform.genshi']
+        return ['system/form/bioform.genshi']
 
     def assign_value(self, valid, kwds):
         if valid=='VALID' or valid=='WARNING':
@@ -165,7 +165,7 @@ class PDBFile(field.File):
 
 
     def get_templates(self):
-        return ['bioform.genshi']
+        return ['system/form/bioform.genshi']
 
     def check_file(self,fieldstorage):
 

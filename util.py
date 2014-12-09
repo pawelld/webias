@@ -115,7 +115,7 @@ def check_uuid(text):
             raise ValueError
 
 
-def render(file='msg_generic.genshi', app=None, type='xhtml', **kwargs):
+def render(file='system/msg/generic.genshi', app=None, type='xhtml', **kwargs):
     args=template.TemplateArgs(app)
 
     for key in kwargs:
@@ -163,7 +163,7 @@ def render_query_paged(file, query, page, attr, fallback, filter_kwargs={}, app=
     return render_paged(file, page, attr, fb, **kwargs)
 
 
-def email(address, file='email_generic.genshi', app=None, **kwargs):
+def email(address, file='system/email/generic.genshi', app=None, **kwargs):
     return get_template_proc().email_message(address, file, app, **kwargs)
 
 def persistent(handler):
@@ -217,7 +217,7 @@ class FeatureList(object):
         features = filter(matches_login, self.get_features().items())
         features.sort(key=sort_key)
 
-        return render('feature_list.genshi', features=features, title=self._title)
+        return render('system/feature_list.genshi', features=features, title=self._title)
 
     @property
     def _acl(self):

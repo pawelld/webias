@@ -367,7 +367,7 @@ class Scheduler:
             run.status='FINISHED'
             req.status='FINISHED'
             run.result=open(resfile,'r').read()
-            template='email_finished.genshi'
+            template='system/email/finished.genshi'
 
 #            files=[os.path.basename(f) for f in sum([glob.glob(p) for p in ['%s/%s'%(job_dir, p) for p in app.output_files]],[])]
             files=sum([glob.glob(p) for p in ['%s/%s'%(job_dir, p) for p in req.app.output_files.split()]],[])
@@ -383,7 +383,7 @@ class Scheduler:
         else:
             run.status='FAILED'
             req.status='FAILED'
-            template='email_failed.genshi'
+            template='system/email/failed.genshi'
 
         session.commit()
 

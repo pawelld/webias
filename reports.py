@@ -109,7 +109,7 @@ class Applications(ReportList):
 
     reportsetting_class = data.ReportSettingApp
     id_column = 'app_id'
-    template = "reports_apps.genshi"
+    template = "system/reports/apps.genshi"
 
     @cherrypy.expose
     @auth.with_acl(auth.app_acl('REPORTS'))
@@ -128,7 +128,7 @@ class Schedulers(ReportList):
 
     reportsetting_class = data.ReportSettingSched
     id_column = 'sched_id'
-    template = "reports_schedulers.genshi"
+    template = "system/reports/schedulers.genshi"
 
     @cherrypy.expose
     @auth.with_acl(auth.sched_acl('REPORTS'))
@@ -164,7 +164,7 @@ class Server:
         for rs in reportsettings:
             settings[rs.report_type] = (rs.frequency, rs.last)
 
-        return render('reports_server.genshi', settings=settings, frequencies=report_frequencies, types_dict=self.reportsetting_class.types)
+        return render('system/reports/server.genshi', settings=settings, frequencies=report_frequencies, types_dict=self.reportsetting_class.types)
 
     @cherrypy.expose
     def set(self, report_type, report_frequency):

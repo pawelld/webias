@@ -125,7 +125,7 @@ class Application(objectify._XO_):
         return req
 
     def render_form(self, query=None):
-        return render('form.genshi', app=self, description=str(self.description), parameters=self.parameters, query=query)
+        return render('system/form/form.genshi', app=self, description=str(self.description), parameters=self.parameters, query=query)
 
     @cherrypy.expose
     # @auth.with_acl(app_acl)
@@ -166,7 +166,7 @@ class Application(objectify._XO_):
 
     def submit_int(self, status, messages, pars, nobase=False):
         if status!='VALID':
-            return render('form_error.genshi',app=self, errors=[m.message for m in messages],nobase=nobase)
+            return render('system/form/error.genshi',app=self, errors=[m.message for m in messages],nobase=nobase)
         else:
             session=cherrypy.request.db
             req = self.store_query(session, pars)
@@ -175,9 +175,9 @@ class Application(objectify._XO_):
                 email=False
             else:
                 email=True
-                util.email(req.user.e_mail,'email_scheduled.genshi',app=self,uuid=req.uuid)
+                util.email(req.user.e_mail,'system/email/scheduled.genshi',app=self,uuid=req.uuid)
 
-            return render('msg_scheduled.genshi',app=self,uuid=req.uuid,email=email,nobase=nobase)
+            return render('system/msg/scheduled.genshi',app=self,uuid=req.uuid,email=email,nobase=nobase)
 
 
     @cherrypy.expose
@@ -204,19 +204,19 @@ class Application(objectify._XO_):
             if self.setup.param_table_template!=None:
                 param_table=self.setup.param_table_template.PCDATA
         except:
-            param_table="param_table.genshi"
+            param_table="system/results/param_table.genshi"
 
         try:
             if self.setup.result_table_template!=None:
                 result_table=self.setup.result_table_template.PCDATA
         except:
-            result_table="result_table.genshi"
+            result_table="system/results/result_table.genshi"
 
         try:
             if self.setup.result_template!=None:
                 tmpl=self.setup.result_template.PCDATA
         except:
-            tmpl="results.genshi"
+            tmpl="system/results/results.genshi"
 
 
         return render(tmpl,app=self,uuid=uuid, owner=owner, runid=runid, query=q, result=r, param_table=param_table, result_table=result_table, tag=tag, starred=starred)
@@ -255,10 +255,10 @@ class Application(objectify._XO_):
             run=self.get_run(session,request,runid)
             return self.render_result(uuid, request.user.login, request.tag, request.starred, request.query, run.id, run.result)
         elif request.status=='FAILED':
-            return render('failure.genshi',app=self, uuid=request.uuid, html="Your job (%s) has exited abnormally. <br/><br/> If you have any questions, please contact our administrator"%(request.uuid))
+            return render('system/results/failure.genshi',app=self, uuid=request.uuid, html="Your job (%s) has exited abnormally. <br/><br/> If you have any questions, please contact our administrator"%(request.uuid))
         elif request.status in ['READY', 'PROCESSING']:
             cherrypy.response.headers['Refresh']='30; url=%s/%s/result?uuid=%s'%(config.SERVER_URL,self.id,request.uuid)
-            return render('no_results.genshi', uuid=request.uuid, app=self)
+            return render('system/results/no_results.genshi', uuid=request.uuid, app=self)
         else:
             raise cherrypy.HTTPError(500, "Your job (%s) has an invalid status (%s)."%(request.uuid, request.status))
 
@@ -339,7 +339,7 @@ class AppGroup():
         except:
             desc=None
 
-        return render('app_list.genshi',apps=self.avail_elts(), name=getattr(self, 'name', None), description=desc)
+        return render('system/app_list.genshi',apps=self.avail_elts(), name=getattr(self, 'name', None), description=desc)
 
 class AppGroupEntry():
     def __init__(self, app):

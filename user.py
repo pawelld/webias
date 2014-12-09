@@ -1,19 +1,19 @@
 # Copyright 2013 Pawel Daniluk, Bartek Wilczynski
-# 
+#
 # This file is part of WeBIAS.
-# 
+#
 # WeBIAS is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as 
-# published by the Free Software Foundation, either version 3 of 
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of
 # the License, or (at your option) any later version.
-# 
+#
 # WeBIAS is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
-# 
-# You should have received a copy of the GNU Affero General Public 
-# License along with WeBIAS. If not, see 
+#
+# You should have received a copy of the GNU Affero General Public
+# License along with WeBIAS. If not, see
 # <http://www.gnu.org/licenses/>.
 
 import cherrypy
@@ -22,7 +22,7 @@ import config
 import auth
 import query
 
-import data 
+import data
 import sqlalchemy
 
 from util import *
@@ -55,7 +55,7 @@ class Requests:
             fb=fb+'?all'
 
 
-        return render_query_paged('user_requests.genshi', q, int(p), 'requests', fb, kwargs, all=all)
+        return render_query_paged('system/user/requests.genshi', q, int(p), 'requests', fb, kwargs, all=all)
 
     def get_req(self, req_uuid):
         session=cherrypy.request.db
@@ -64,7 +64,7 @@ class Requests:
 
         login=auth.get_login()
         user=data.User.get_by_login(session,login)
-        
+
         return req
 
     def change_req(self, req_uuid, **kwargs):
@@ -113,19 +113,13 @@ class Requests:
         q.req=req
         return cherrypy.tree.apps[config.APP_ROOT].root.apps[req.app.id].render_form(q)
 
-class User:
+class User(FeatureList):
     _cp_config={
         'tools.secure.on': True,
         'tools.protect.allowed': ['user']
     }
 
+    _title = "User panel"
+
     def __init__(self):
         self.requests=Requests()
-
-    @cherrypy.expose
-    @persistent
-    def index(self):
-        features = dict([(self.__dict__[el].title, {'caption':self.__dict__[el].caption, 'link':el}) for el in self.__dict__ if hasattr(self.__dict__[el], 'title')])
-
-        return render('user.genshi', features=features)
-

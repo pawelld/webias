@@ -62,7 +62,7 @@ class Applications(object):
             admin_allowed[app.id] = auth.ForceLogin.match_acl(app.get_acl('ADMIN'), login)
             view_allowed[app.id] = auth.ForceLogin.match_acl(app.get_acl('VIEW'), login)
 
-        return render('admin_apps.genshi', apps=apps, loaded_test=loaded, admin= (login == 'admin'), view_allowed=view_allowed, admin_allowed=admin_allowed)
+        return render('system/admin/apps.genshi', apps=apps, loaded_test=loaded, admin= (login == 'admin'), view_allowed=view_allowed, admin_allowed=admin_allowed)
 
 
     @cherrypy.expose
@@ -176,7 +176,7 @@ class Requests:
         session=cherrypy.request.db
         q=session.query(data.Request)
 
-        return render_query_paged('admin_requests.genshi', q, int(p), 'requests', config.APP_ROOT+"/admin/requests/", kwargs)
+        return render_query_paged('system/admin/requests.genshi', q, int(p), 'requests', config.APP_ROOT+"/admin/requests/", kwargs)
 
 
     @cherrypy.expose
@@ -213,7 +213,7 @@ class Users:
 
         q=session.query(data.User)
 
-        return render_query_paged('admin_users.genshi', q, int(p), 'users', config.APP_ROOT+"/admin/users/", kwargs)
+        return render_query_paged('system/admin/users.genshi', q, int(p), 'users', config.APP_ROOT+"/admin/users/", kwargs)
 
     @cherrypy.expose
     @persistent
@@ -263,9 +263,9 @@ class Users:
         usr=data.User.get_user(session, id)
 
         if usr.status=='NEW':
-            email(usr.e_mail,'email_newuser.genshi',newlogin=usr.login, uuid=usr.uuid)
+            email(usr.e_mail,'system/email/newuser.genshi',newlogin=usr.login, uuid=usr.uuid)
         elif usr.status=='FORGOTTEN':
-            email(email,'email_forgotten.genshi',newlogin=usr.login, uuid=usr.uuid)
+            email(email,'system/email/forgotten.genshi',newlogin=usr.login, uuid=usr.uuid)
 
         go_back()
 
@@ -278,7 +278,7 @@ class Users:
         if usr.id<=0:
             raise cherrypy.HTTPError(400, "Operation not allowed for user %d:%s." % (usr.id, usr.login))
 
-        return render('admin_users_role.genshi', user=usr, roles=data.UserRole.roles)
+        return render('system/admin/users_role.genshi', user=usr, roles=data.UserRole.roles)
 
     @cherrypy.expose
     def roleset(self, id, role=None, cancel=False):
@@ -329,7 +329,7 @@ class Users:
         app_data = fill_data(apps, data.ApplicationACL.privileges, user.role.app_acls, 'app')
         sched_data = fill_data(schedulers, data.SchedulerACL.privileges, user.role.sched_acls, 'sched')
 
-        return render('admin_users_acls.genshi', user=user, apps=apps, app_data=app_data, app_privileges=data.ApplicationACL.privileges, schedulers=schedulers, sched_data=sched_data, sched_privileges=data.SchedulerACL.privileges)
+        return render('system/admin/users_acls.genshi', user=user, apps=apps, app_data=app_data, app_privileges=data.ApplicationACL.privileges, schedulers=schedulers, sched_data=sched_data, sched_privileges=data.SchedulerACL.privileges)
 
     def aclset(self, usr_id, ent_id, priv, value, ent_cls, acl_cls, id_field):
         session=cherrypy.request.db
@@ -389,7 +389,7 @@ class Schedulers:
             admin_allowed[sched.id] = auth.ForceLogin.match_acl(sched.get_acl('ADMIN'), login)
             view_allowed[sched.id] = auth.ForceLogin.match_acl(sched.get_acl('VIEW'), login)
 
-        return render('admin_schedulers.genshi', schedulers=schedulers, admin= (login == 'admin'), view_allowed=view_allowed, admin_allowed=admin_allowed)
+        return render('system/admin/schedulers.genshi', schedulers=schedulers, admin= (login == 'admin'), view_allowed=view_allowed, admin_allowed=admin_allowed)
 
     @cherrypy.expose
     @auth.with_acl(auth.sched_acl('VIEW'))
@@ -411,7 +411,7 @@ class Schedulers:
 
         q=session.query(data.SchedulerLock).filter_by(sched_id=sched_id)
 
-        return render_query_paged('admin_schedulers_log.genshi', q, int(p), 'locks', config.APP_ROOT+"/admin/schedulers/log/%s"%sched_id)
+        return render_query_paged('system/admin/schedulers_log.genshi', q, int(p), 'locks', config.APP_ROOT+"/admin/schedulers/log/%s"%sched_id)
 
 
 class Admin(FeatureList):

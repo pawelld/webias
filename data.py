@@ -741,7 +741,7 @@ class ReportSettingApp(ReportSetting):
         'polymorphic_identity':'ReportSettingApp'
     }
 
-    templates = {'ALL': 'reports_app_all.genshi', 'FAILED': 'reports_app_failed.genshi', 'FINISHED': 'reports_app_finished.genshi', 'WAITING': 'reports_app_waiting.genshi'}
+    templates = {'ALL': 'system/reports/app_all.genshi', 'FAILED': 'system/reports/app_failed.genshi', 'FINISHED': 'system/reports/app_finished.genshi', 'WAITING': 'system/reports/app_waiting.genshi'}
 
     types = {'ALL': 'Submitted', 'WAITING': 'Waiting', 'FAILED': 'Failed', 'FINISHED': 'Successful'}
 
@@ -766,7 +766,7 @@ class ReportSettingSched(ReportSetting):
         'polymorphic_identity':'ReportSettingSched'
     }
 
-    templates = {'FAILED': 'reports_sched_failed.genshi', 'FINISHED': 'reports_sched_finished.genshi', 'PROCESSING': 'reports_sched_processing.genshi', 'STARTSTOP': 'reports_sched_startstop.genshi', 'DEAD': 'reports_sched_dead.genshi'}
+    templates = {'FAILED': 'system/reports/sched_failed.genshi', 'FINISHED': 'system/reports/sched_finished.genshi', 'PROCESSING': 'system/reports/sched_processing.genshi', 'STARTSTOP': 'system/reports/sched_startstop.genshi', 'DEAD': 'system/reports/sched_dead.genshi'}
 
     types = {'STARTSTOP': 'Start/stop', 'DEAD': 'No response', 'PROCESSING':'Processing', 'FINISHED': 'Success', 'FAILED': 'Failure'}
 
@@ -806,7 +806,7 @@ class ReportSettingServ(ReportSetting):
         'polymorphic_identity':'ReportSettingServ'
     }
 
-    templates = {'HEARTBEAT': 'reports_serv_heartbeat.genshi', 'NEWUSER': 'reports_serv_newuser.genshi', 'ERRORS': 'reports_serv_errors.genshi', 'SESSIONS': 'reports_serv_sessions.genshi', 'USERLOGIN': 'reports_serv_userlogin.genshi', 'LOG': 'reports_serv_serverlog.genshi'}
+    templates = {'HEARTBEAT': 'system/reports/serv_heartbeat.genshi', 'NEWUSER': 'system/reports/serv_newuser.genshi', 'ERRORS': 'system/reports/serv_errors.genshi', 'SESSIONS': 'system/reports/serv_sessions.genshi', 'USERLOGIN': 'system/reports/serv_userlogin.genshi', 'LOG': 'system/reports/serv_serverlog.genshi'}
 
     types = {'LOG': 'Server log', 'SESSIONS': 'New sessions', 'HEARTBEAT':'Heartbeat', 'ERRORS': 'Web errors', 'NEWUSER': 'User registration', 'USERLOGIN': 'User login'}
 

@@ -155,7 +155,7 @@ class Hits:
         else:
             q=session.query(data.Hit).order_by(data.Hit.id.desc())
 
-        return render_query_paged('statistics_hits.genshi', q, int(p), 'hits', config.APP_ROOT+"/statistics/hits/",kwargs)
+        return render_query_paged('system/statistics/hits.genshi', q, int(p), 'hits', config.APP_ROOT+"/statistics/hits/",kwargs)
 
 class Sessions:
     _title="Sessions"
@@ -171,7 +171,7 @@ class Sessions:
 
         q = data.Hit.session_query(session).filter(data.Hit.date>=date).order_by(data.Hit.id.desc())
 
-        return render_query_paged('statistics_sessions.genshi', q, int(p), 'sessions', config.APP_ROOT+"/statistics/sessions/")
+        return render_query_paged('system/statistics/sessions.genshi', q, int(p), 'sessions', config.APP_ROOT+"/statistics/sessions/")
 
     @cherrypy.expose
     @auth.with_acl(['any'])
@@ -187,7 +187,7 @@ class Sessions:
 
         stats=q.one()
 
-        return render('statistics_sessions_stats.genshi', num_hits=stats[0], num_sessions=stats[1], num_reqs=stats[2])
+        return render('system/statistics/sessions_stats.genshi', num_hits=stats[0], num_sessions=stats[1], num_reqs=stats[2])
 
 
 
@@ -204,7 +204,7 @@ class Errors:
 
         q=session.query(data.Error).filter(data.Error.date>=date).order_by(data.Error.hit_id.desc())
 
-        return render_query_paged('statistics_errors.genshi', q, int(p), 'errors', config.APP_ROOT+"/statistics/errors/")
+        return render_query_paged('system/statistics/errors.genshi', q, int(p), 'errors', config.APP_ROOT+"/statistics/errors/")
 
     @cherrypy.expose
     @persistent
@@ -213,7 +213,7 @@ class Errors:
 
         err=data.Error.get_error(session, error_id)
 
-        return render('statistics_errors_show.genshi', error=err)
+        return render('system/statistics/errors_show.genshi', error=err)
 
 class ServerLog:
     _title="Server log"
@@ -228,7 +228,7 @@ class ServerLog:
 
         q=session.query(data.Log).filter(data.Log.date>=date).order_by(data.Log.id.desc())
 
-        return render_query_paged('statistics_serverlog.genshi', q, int(p), 'events', config.APP_ROOT+"/statistics/log/")
+        return render_query_paged('system/statistics/serverlog.genshi', q, int(p), 'events', config.APP_ROOT+"/statistics/log/")
 
     @cherrypy.expose
     @persistent
@@ -237,7 +237,7 @@ class ServerLog:
 
         log=session.query(data.Log).get(log_id)
 
-        return render('statistics_serverlog_show.genshi', log=log)
+        return render('system/statistics/serverlog_show.genshi', log=log)
 
 
 class Statistics(FeatureList):

@@ -278,7 +278,7 @@ class Passwd():
 
     @cherrypy.expose
     def index(self):
-        return login_form('passwd.genshi')
+        return login_form('system/auth/passwd.genshi')
 
     @cherrypy.expose
     def submit(self, login, oldpass, newpass, verpass):
@@ -309,7 +309,7 @@ class Passwd():
 class NewUser():
     @cherrypy.expose
     def index(self):
-        return login_form('newuser.genshi')
+        return login_form('system/auth/newuser.genshi')
 
     @cherrypy.expose
     def submit(self, login, newpass, verpass, email):
@@ -343,8 +343,8 @@ class NewUser():
             user=data.User(email,login,newpass,'NEW',uid,date)
             session.add(user)
 
-        util.email(email,'email_newuser.genshi',newlogin=login, uuid=uid)
-        return util.render('msg_newuser.genshi',newlogin=login)
+        util.email(email,'system/email/newuser.genshi',newlogin=login, uuid=uid)
+        return util.render('system/msg/newuser.genshi',newlogin=login)
 
     @cherrypy.expose
     def confirm(self, login, uuid):
@@ -357,7 +357,7 @@ class NewUser():
                 if user.status=='NEW':
                     user.status='OK'
                     session.commit()
-                    return util.render('msg_userconfirm.genshi',login=login)
+                    return util.render('system/msg/userconfirm.genshi',login=login)
 
                 if user.status=='OK':
                     raise cherrypy.HTTPError(400, "Account %s already activated."%login)
@@ -367,7 +367,7 @@ class NewUser():
 class Forgotten():
     @cherrypy.expose
     def index(self):
-        return login_form('forgotten.genshi')
+        return login_form('system/auth/forgotten.genshi')
 
     @cherrypy.expose
     def submit(self, login, email):
@@ -383,8 +383,8 @@ class Forgotten():
         user.uuid=uuid.uuid1().hex
 #        user.password=''
 
-        util.email(email,'email_forgotten.genshi',newlogin=login, uuid=user.uuid)
-        return util.render('msg_forgotten.genshi',newlogin=login)
+        util.email(email,'system/email/forgotten.genshi',newlogin=login, uuid=user.uuid)
+        return util.render('system/msg/forgotten.genshi',newlogin=login)
 
     @cherrypy.expose
     def confirm(self, login, uuid):
@@ -398,7 +398,7 @@ class Forgotten():
                     user.status='OK'
                     passwd=random_password()
                     user.update_passwd(passwd)
-                    return util.render('msg_forgottenconfirm.genshi',newlogin=login,password=passwd)
+                    return util.render('system/msg/forgottenconfirm.genshi',newlogin=login,password=passwd)
 
                 if user.status=='OK':
                     raise cherrypy.HTTPError(400, "Expired link.")
@@ -419,7 +419,7 @@ class Login:
         if fl!=None:
             fl.keep=True
 
-        return login_form('login.genshi')
+        return login_form('system/auth/login.genshi')
 
     @cherrypy.expose
     def submit(self, login, passwd):

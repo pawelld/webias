@@ -80,7 +80,7 @@ class TemplateProcessor:
         except:
             cherrypy.engine.log("Cannot send e-mail:\n" + msg.as_string(), 40)
 
-    def email_message(self, address, file='email_generic.genshi', app=None, **kwargs):
+    def email_message(self, address, file='system/email/generic.genshi', app=None, **kwargs):
 
         email=self.message(file=file,app=app, type='text', **kwargs)
 
@@ -98,7 +98,7 @@ class TemplateProcessor:
 
         return self.email(address,subject,body)
 
-    def message(self, file='msg_generic.genshi', app=None, type='xhtml', **kwargs):
+    def message(self, file='system/msg/generic.genshi', app=None, type='xhtml', **kwargs):
         args=TemplateArgs(app)
 
         for key in kwargs:
@@ -184,7 +184,7 @@ def error_page(status, message, traceback, version):
 
     import util
 
-    return util.get_template_proc().processTemplate('BIAS_error.genshi',args)
+    return util.get_template_proc().processTemplate('system/error.genshi',args)
 
 
 cherrypy.config.update({'error_page.default': error_page})
