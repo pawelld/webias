@@ -24,6 +24,8 @@ import sqlalchemy
 
 import auth
 
+import statistics
+
 from util import *
 
 
@@ -360,9 +362,31 @@ class Users:
     def aclset_sched(self, usr_id, ent_id, priv, value):
         self.aclset(usr_id, ent_id, priv, value, data.Scheduler, data.SchedulerACL, 'sched_id')
 
+class SchedulerLog(statistics.ServerLog):
+    _class = data.SchedulerLog
+
+    @cherrypy.expose
+    @auth.with_acl(auth.sched_acl('ADMIN'))
+    @persistent
+    def default(self, sched_id, show=False, id=0, p=1):
+        self._location = config.APP_ROOT + '/admin/schedulers/log/' + sched_id + '/'
+
+        if show:
+            return statistics.ServerLog.show(self, id)
+        else:
+            return self.render(p, sched_id, title='Log for scheduler ' + sched_id)
+
+    def show(self, id):
+        # This method is to override show in statistics.ServerLog which does
+        # not have a proper ACL decorator.
+        pass
+
 class Schedulers:
     _title="Schedulers"
     _caption="Control site access."
+
+    def __init__(self):
+        self.log = SchedulerLog()
 
     @property
     def _acl(self):
@@ -406,7 +430,7 @@ class Schedulers:
     @cherrypy.expose
     @auth.with_acl(auth.sched_acl('ADMIN'))
     @persistent
-    def log(self, sched_id, p=1):
+    def locks(self, sched_id, p=1):
         session=cherrypy.request.db
 
         q=session.query(data.SchedulerLock).filter_by(sched_id=sched_id)

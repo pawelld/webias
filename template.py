@@ -147,7 +147,6 @@ class TemplateProcessor:
         except:
             pass
 
-
         try:
             tmp = cherrypy.request.db
         except:
@@ -155,6 +154,7 @@ class TemplateProcessor:
         else:
             args.navigation_bar = util.get_WeBIAS().navigation_bar()
 
+        args.template_base = self.config.BIAS_DIR+'/templates'
         args.login=auth.get_login()
 
         stream = tmplt.generate(**args.__dict__)

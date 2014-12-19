@@ -70,9 +70,9 @@ License along with WeBIAS. If not, see
 		</div>
 		</div>
 
-		<xi:include href="${param_table}"/>
+		<xi:include href="${template_base + '/' + param_table}"/>
 		<br/>
-		<xi:include py:if="result!=None" href="${result_table}"/>
+		<xi:include py:if="result!=None" href="${template_base + '/' + result_table}"/>
 	</body>
 </html>
 

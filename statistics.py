@@ -117,10 +117,14 @@ def error_recorder(hit_id=None):
 cherrypy.tools.error_recorder = cherrypy.Tool('after_error_response', error_recorder)
 
 class DBLogPlugin(cherrypy.process.plugins.SimplePlugin):
-    def __init__(self, bus):
+    def __init__(self, bus, sched_id = None):
         self.engine= sqlalchemy.create_engine(config.DB_URL, echo=False)
         self.engine.connect();
         self.Session=sqlalchemy.orm.sessionmaker(bind=self.engine)
+
+        self.log_class = data.Log if sched_id is None else data.SchedulerLog
+        self.sched_id = sched_id
+
         cherrypy.process.plugins.SimplePlugin.__init__(self, bus)
 
     def start(self):
@@ -133,7 +137,9 @@ class DBLogPlugin(cherrypy.process.plugins.SimplePlugin):
 
     def log(self, message, level):
         session = self.Session()
-        log = data.Log(date=datetime.datetime.now(), message=message, level=level)
+        log = self.log_class(date=datetime.datetime.now(), message=message, level=level)
+        if self.sched_id is not None:
+            log.sched_id = self.sched_id
         session.add(log)
         session.commit()
 
@@ -219,23 +225,35 @@ class ServerLog:
     _title="Server log"
     _caption="Show log entries for the last 90 days."
 
-    @cherrypy.expose
-    @persistent
-    def index(self, p=1):
+    _location = config.APP_ROOT+"/statistics/log/"
+
+    _class = data.Log
+
+    def render(self, p=1, sched_id=None, title=''):
         session=cherrypy.request.db
 
         date=str(datetime.date.today()-datetime.timedelta(90))
 
-        q=session.query(data.Log).filter(data.Log.date>=date).order_by(data.Log.id.desc())
+        if sched_id is None:
+            filter = [self._class.date >= date]
+        else:
+            filter = [self._class.date >= date, self._class.sched_id == sched_id]
 
-        return render_query_paged('system/statistics/serverlog.genshi', q, int(p), 'events', config.APP_ROOT+"/statistics/log/")
+        q=session.query(self._class).filter(*filter).order_by(self._class.id.desc())
+
+        return render_query_paged('system/statistics/serverlog.genshi', q, int(p), 'events', self._location, title=title)
+
+    @cherrypy.expose
+    @persistent
+    def index(self, p=1):
+        return self.render(p, title=self._title)
 
     @cherrypy.expose
     @persistent
     def show(self, log_id):
         session=cherrypy.request.db
 
-        log=session.query(data.Log).get(log_id)
+        log=session.query(self._class).get(log_id)
 
         return render('system/statistics/serverlog_show.genshi', log=log)
 

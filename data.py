@@ -616,6 +616,20 @@ class Log(Base):
     def __repr__(self):
         return "<Log(%d, %s, %d, %s)>" % (self.id, self.date, self.level, repr(self.message))
 
+class SchedulerLog(Base):
+    __tablename__ = 'scheduler_log'
+
+    __table_args__ = {'mysql_engine':'InnoDB'}
+
+    id = Column(Integer, Sequence('error_id_seq'), primary_key=True)
+    date = Column(DateTime, nullable=False)
+
+    sched_id = Column(String(50), ForeignKey('schedulers.id', onupdate="cascade", ondelete="cascade"), nullable=True)
+    level = Column(Integer, nullable=False)
+    message = Column(Text(), nullable=False)
+
+    def __repr__(self):
+        return "<SchedulerLog(%d, %s, %s, %d, %s)>" % (self.id, self.sched_id, self.date, self.level, repr(self.message))
 
 class ACL(Base):
     __tablename__ = 'acls'

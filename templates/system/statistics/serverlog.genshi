@@ -21,10 +21,10 @@ License along with WeBIAS. If not, see
 <html xmlns:py="http://genshi.edgewall.org/" encoding="utf-8" xmlns:xi="http://www.w3.org/2001/XInclude">
 	<xi:include href="../base.genshi" />
 	<head>
-		<title>Server log</title>
+		<title>${title}</title>
 	</head>
 	<body>
-		<h1>Server log</h1>
+		<h1>${title}</h1>
 
 		<?python
 			from itertools import cycle

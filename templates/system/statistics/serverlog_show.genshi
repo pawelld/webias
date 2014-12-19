@@ -47,6 +47,7 @@ License along with WeBIAS. If not, see
 			</py:def>
 
 			${print_row('Date', log.date)}
+			${print_row('Scheduler', getattr(log, 'sched_id', None))}
 			${print_row('Level', log.level)}
 			${print_row('Message', log.message, True)}
 		</table>
