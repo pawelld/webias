@@ -52,7 +52,7 @@ class Applications(object):
 
         apps=data.Application.get_allowed_apps(session, user, ('VIEW', 'ADMIN'))
 
-        root=cherrypy.tree.apps[config.APP_ROOT].root
+        root=cherrypy.tree.apps[config.root].root
 
         def loaded(app):
             return app.id in root.apps
@@ -74,7 +74,7 @@ class Applications(object):
 
         dbapp=data.Application.get_app(session, app)
 
-        filename=config.BIAS_DIR+'/apps/'+dbapp.definition
+        filename=config.server_dir + '/apps/' + dbapp.definition
 
         try:
             res=open(filename).read()
@@ -126,7 +126,7 @@ class Applications(object):
 
         dbapp=self.set_enabled(session,app,False)
 
-        cherrypy.tree.apps[config.APP_ROOT].root.deregister(dbapp.id)
+        cherrypy.tree.apps[config.root].root.deregister(dbapp.id)
 
         go_back()
 
@@ -136,13 +136,13 @@ class Applications(object):
         session=cherrypy.request.db
 
 
-        root=cherrypy.tree.apps[config.APP_ROOT].root
+        root=cherrypy.tree.apps[config.root].root
 
         dbapp=None
 
         if app in root.apps:
             dbapp=self.set_enabled(session,app,True)
-            cherrypy.tree.apps[config.APP_ROOT].root.register(dbapp.id)
+            cherrypy.tree.apps[config.root].root.register(dbapp.id)
 
         if dbapp==None or not dbapp.enabled:
             raise cherrypy.HTTPError(500, "Failed to enable %s."%app)
@@ -178,7 +178,7 @@ class Requests:
         session=cherrypy.request.db
         q=session.query(data.Request)
 
-        return render_query_paged('system/admin/requests.genshi', q, int(p), 'requests', config.APP_ROOT+"/admin/requests/", kwargs)
+        return render_query_paged('system/admin/requests.genshi', q, int(p), 'requests', config.root+"/admin/requests/", kwargs)
 
 
     @cherrypy.expose
@@ -215,7 +215,7 @@ class Users:
 
         q=session.query(data.User)
 
-        return render_query_paged('system/admin/users.genshi', q, int(p), 'users', config.APP_ROOT+"/admin/users/", kwargs)
+        return render_query_paged('system/admin/users.genshi', q, int(p), 'users', config.root + "/admin/users/", kwargs)
 
     @cherrypy.expose
     @persistent
@@ -369,7 +369,7 @@ class SchedulerLog(statistics.ServerLog):
     @auth.with_acl(auth.sched_acl('ADMIN'))
     @persistent
     def default(self, sched_id, show=False, id=0, p=1):
-        self._location = config.APP_ROOT + '/admin/schedulers/log/' + sched_id + '/'
+        self._location = config.root + '/admin/schedulers/log/' + sched_id + '/'
 
         if show:
             return statistics.ServerLog.show(self, id)
@@ -435,7 +435,7 @@ class Schedulers:
 
         q=session.query(data.SchedulerLock).filter_by(sched_id=sched_id)
 
-        return render_query_paged('system/admin/schedulers_log.genshi', q, int(p), 'locks', config.APP_ROOT+"/admin/schedulers/log/%s"%sched_id)
+        return render_query_paged('system/admin/schedulers_log.genshi', q, int(p), 'locks', config.root + "/admin/schedulers/log/%s"%sched_id)
 
 
 class Admin(FeatureList):

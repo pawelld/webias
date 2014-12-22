@@ -20,4 +20,4 @@ License along with WeBIAS. If not, see
 
 Processed requests for scheduler ${reportsetting.sched.id}
 
-{% include reports_sched_requests.genshi %}
+{% include sched_requests.genshi %}

@@ -108,7 +108,7 @@ cherrypy.tools.protect= cherrypy.Tool('before_handler', protect)
 
 class CleanupUsers(cherrypy.process.plugins.Monitor):
     def __init__(self, bus, frequency=300):
-        self.engine= sqlalchemy.create_engine(config.DB_URL, echo=False)
+        self.engine= sqlalchemy.create_engine(config.db_url, echo=False)
         self.engine.connect();
         self.Session=sqlalchemy.orm.sessionmaker(bind=self.engine)
         cherrypy.process.plugins.Monitor.__init__(self,bus,self.run,frequency)
@@ -125,7 +125,7 @@ class CleanupUsers(cherrypy.process.plugins.Monitor):
 
 
 def set_admin_pw():
-    engine= sqlalchemy.create_engine(config.DB_URL, echo=False)
+    engine= sqlalchemy.create_engine(config.db_url, echo=False)
     engine.connect();
     Session=sqlalchemy.orm.sessionmaker(bind=engine)
     session=Session()
@@ -225,7 +225,7 @@ class ForceLogin():
 
         cherrypy.session['force_login']=self
         self.keep=True
-        raise cherrypy.HTTPRedirect(config.APP_ROOT+"/login/")
+        raise cherrypy.HTTPRedirect(config.root+"/login/")
 
 
     def success(self):
@@ -434,7 +434,7 @@ class Login:
     @cherrypy.expose
     def signout(self):
         set_login(None)
-        raise cherrypy.HTTPRedirect(config.SERVER_URL)
+        raise cherrypy.HTTPRedirect(config.server_url)
 
     def authenticate(self, session, login, passwd):
         user=data.User.get_by_login(session, login)

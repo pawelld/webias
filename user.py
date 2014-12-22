@@ -43,7 +43,7 @@ class Requests:
 
         q=session.query(data.Request).with_parent(user)
 
-        fb = config.APP_ROOT+'/user/requests/'
+        fb = config.root+'/user/requests/'
 
         all= all!=None
 
@@ -111,7 +111,7 @@ class Requests:
         req=self.get_req(req_uuid)
         q=query.Query(req.query)
         q.req=req
-        return cherrypy.tree.apps[config.APP_ROOT].root.apps[req.app.id].render_form(q)
+        return cherrypy.tree.apps[config.root].root.apps[req.app.id].render_form(q)
 
 class User(FeatureList):
     _cp_config={

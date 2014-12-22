@@ -51,7 +51,7 @@ class SAEnginePlugin(plugins.SimplePlugin):
         self.bus.subscribe("bind", self.bind)
 
     def start(self):
-        self.sa_engine = create_engine(config.DB_URL, echo=False, pool_recycle=1800)
+        self.sa_engine = create_engine(config.get('Database', 'db_url'), echo=False, pool_recycle=1800)
 
     def stop(self):
         if self.sa_engine:

@@ -20,7 +20,7 @@ License along with WeBIAS. If not, see
 
 <html xmlns:py="http://genshi.edgewall.org/" encoding="utf-8"
 xmlns:xi="http://www.w3.org/2001/XInclude">
-  <xi:include href="msg.genshi" />
+  <xi:include href="../msg/msg.genshi" />
   <head>
   </head>
   <body>

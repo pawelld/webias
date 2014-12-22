@@ -25,7 +25,6 @@ import gnosis.xml.objectify as objectify
 
 objectify.keep_containers(1)
 
-import config
 import os,glob
 
 import field
@@ -46,16 +45,14 @@ from util import *
 
 import traceback
 
-
-sys.path.append(config.BIAS_DIR+"/modules")
-
+import config
 
 class WeBIAS:
     @staticmethod
     def scan_app_dir(session):
         apps=session.query(data.Application).all()
 
-        files=glob.glob(config.BIAS_DIR+'/apps/*.xml')
+        files=glob.glob(config.server_dir + '/apps/*.xml')
 
         defs={}
 
@@ -87,13 +84,13 @@ class WeBIAS:
                         session.add(dbapp)
 
     def __init__(self):
-        engine = create_engine(config.DB_URL, echo=False)
+        engine = create_engine(config.get('Database', 'db_url'), echo=False)
         session=scoped_session(sessionmaker(autoflush=True, autocommit=False))
         session.configure(bind=engine)
 
         data.Base.metadata.create_all(engine)
 
-        WeBIAS.scan_app_dir(session)
+        self.scan_app_dir(session)
 
         self.apps={}
         self.groups={}
@@ -139,7 +136,7 @@ class WeBIAS:
 
     def server_map(self):
         try:
-            filename=config.BIAS_DIR+'/apps/server_map.xml'
+            filename=config.server_dir + '/apps/server_map.xml'
             defin=objectify.make_instance(filename, p=objectify.DOM)
             cherrypy.engine.autoreload.files.add(filename)
             self.store_groups(defin)
@@ -182,7 +179,7 @@ class WeBIAS:
         self.apps[app_id].enabled=True
 
     def load_app(self,dbapp):
-        filename=config.BIAS_DIR+'/apps/'+dbapp.definition
+        filename=config.server_dir + '/apps/' + dbapp.definition
         cherrypy.engine.autoreload.files.add(filename)
 
         try:
@@ -220,44 +217,13 @@ class WeBIAS:
     def index(self):
         return self.root.index()
 
-#    @cherrypy.expose
-#    def error(self):
-#        raise cherrypy.HTTPError(500, 'Error example')
-#
-#    def auth_acl(self, login=None):
-#        if login==None:
-#            return ['any']
-#        else:
-#            return [[login]]
-#
-#    @cherrypy.expose
-#    @auth.with_acl(auth_acl)
-#    def auth(self, login=None):
-#        return "Auth OK login::"+str(login)
-#
-#
-#    @cherrypy.expose
-#    def forcelogin(self):
-#        def action():
-#            return "Zalogowano"
-#
-#        auth.ForceLogin(action=action).do()
-#
-#
-#    @cherrypy.expose
-#    def lowerror(self):
-#        abcabv.asd=0
-
     @cherrypy.expose
     def page(self, *path):
         import genshi.template
 
         for i in range(len(path), 0, -1):
             template='/'.join(['page']+list(path[0:i]))+'.genshi'
-#            try:
             return render(template, par=path[i:])
-#            except genshi.template.TemplateNotFound:
-#                pass
 
         raise cherrypy.HTTPError(404)
 
@@ -279,10 +245,15 @@ if __name__=="__main__":
 
 
     from optparse import OptionParser
-    parser = OptionParser()
-    parser.add_option("--changepw", action="store_true", dest="changepw")
-    parser.add_option("--foreground", action="store_true", dest="foreground")
+    parser = OptionParser(usage="usage: %prog [options] server_dir")
+    parser.add_option("--changepw", action="store_true", dest="changepw", help="Prompt for administrator password change and exit")
+    parser.add_option("--foreground", action="store_true", dest="foreground", help="Run WeBIAS in foreground (without daemonization)")
     (options, args)=parser.parse_args()
+
+    if len(args) != 1:
+        parser.error("incorrect number of arguments")
+
+    config.load_config(args[0])
 
     if options.changepw:
         auth.set_admin_pw()
@@ -293,7 +264,7 @@ if __name__=="__main__":
 #    DropPrivileges(cherrypy.engine, umask=0022, uid=1044, gid=1000).subscribe()
 
 
-    PIDFile(cherrypy.engine, config.PID_FILE).subscribe()
+    PIDFile(cherrypy.engine, config.get('Server', 'pid_file')).subscribe()
     cherrypy.engine.signal_handler.subscribe()
     auth.CleanupUsers(cherrypy.engine).subscribe()
     data.SAEnginePlugin(cherrypy.engine).subscribe()
@@ -308,8 +279,8 @@ if __name__=="__main__":
         'tools.sessions.on': True,
         'tools.clean_session.on': True,
         'log.screen': False,
-        'log.access_file': config.LOG_ACCESS,
-        'log.error_file': config.LOG_ERROR,
+        'log.access_file': config.get('Server', 'access_log'),
+        'log.error_file': config.get('Server', 'error_log'),
         'tools.protect.on': True,
         'tools.protect.allowed': ['any']
     }
@@ -317,43 +288,43 @@ if __name__=="__main__":
     mediaconf={
         'tools.staticdir.on': True,
         'tools.protect.on': False,
-        'tools.staticdir.dir': config.BIAS_DIR+'/media'
+        'tools.staticdir.dir': config.server_dir + '/media'
     }
 
-    cherrypy.tree.mount(WeBIAS(),config.APP_ROOT, config={'/': conf, '/media':mediaconf})
+    cherrypy.tree.mount(WeBIAS(), config.get('Server', 'root'), config={'/': conf, '/media': mediaconf})
 
     cherrypy.config.update({
         'session_filter.on':True,
         "session_filter.timeout":600000
     })
 
-    cherrypy.engine.templateProcessor=template.TemplateProcessor(config)
+    cherrypy.engine.templateProcessor=template.TemplateProcessor()
 
-    if config.PROXY:
+    if config.getboolean('Server', 'proxy'):
         cherrypy.config.update({
             'tools.proxy.on': True,
             'tools.https_filter.on': True,
             'server.thread_pool': 100,
-            "server.socket_port": config.SERVER_PORT,
-            'server.socket_host': config.SERVER_HOST
+            "server.socket_port": config.getint('Server', 'server_port'),
+            'server.socket_host': config.get('Server', 'server_host')
         })
 
     else:
         cherrypy.server.unsubscribe()
 
         server1 = cherrypy._cpserver.Server()
-        server1.socket_port=config.SERVER_SSL_PORT
-        server1._socket_host=config.SERVER_HOST
+        server1.socket_port=config.getint('Server', 'server_ssl_port')
+        server1._socket_host=config.get('Server', 'server_host')
         server1.thread_pool=100
         server1.ssl_module = 'pyopenssl'
-        server1.ssl_certificate = config.SSL_CERT;
-        server1.ssl_private_key = config.SSL_KEY
-        server1.ssl_certificate_chain = config.SSL_CERT_CHAIN
+        server1.ssl_certificate = config.get('Server', 'ssl_cert')
+        server1.ssl_private_key = config.get('Server', 'ssl_key')
+        server1.ssl_certificate_chain = config.get('Server', 'ssl_cert_chain')
         server1.subscribe()
 
         server2 = cherrypy._cpserver.Server()
-        server2.socket_port=config.SERVER_PORT
-        server2._socket_host=config.SERVER_HOST
+        server2.socket_port = config.getint('Server', 'server_port')
+        server2._socket_host = config.get('Server', 'server_host')
         server2.thread_pool=100
         server2.subscribe()
 

@@ -257,7 +257,7 @@ class Application(objectify._XO_):
         elif request.status=='FAILED':
             return render('system/results/failure.genshi',app=self, uuid=request.uuid, html="Your job (%s) has exited abnormally. <br/><br/> If you have any questions, please contact our administrator"%(request.uuid))
         elif request.status in ['READY', 'PROCESSING']:
-            cherrypy.response.headers['Refresh']='30; url=%s/%s/result?uuid=%s'%(config.SERVER_URL,self.id,request.uuid)
+            cherrypy.response.headers['Refresh']='30; url=%s/%s/result?uuid=%s'%(config.server_url,self.id,request.uuid)
             return render('system/results/no_results.genshi', uuid=request.uuid, app=self)
         else:
             raise cherrypy.HTTPError(500, "Your job (%s) has an invalid status (%s)."%(request.uuid, request.status))
@@ -281,9 +281,13 @@ class Application(objectify._XO_):
         ext=file.name.split('.')[-1]
 
         cherrypy.response.headers['Content-disposition']="attachment; filename=%s"%file.name
-        if ext in config.MIME_TYPES:
-            cherrypy.response.headers['Content-type']=config.MIME_TYPES[ext]
-            if config.MIME_TYPES[ext]=='text/html':
+
+        mime_types = eval(config.get('Server', 'mime_types'))
+
+        if ext in mime_types:
+            mime = mime_types[ext]
+            cherrypy.response.headers['Content-type'] = mime
+            if mime == 'text/html':
                 cherrypy.response.headers['Content-disposition']="inline; filename=%s"%file.name
         else:
             cherrypy.response.headers['Content-type']='application/octet-stream'

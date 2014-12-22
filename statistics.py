@@ -74,7 +74,7 @@ def error_recorder(hit_id=None):
     engine=None
 
     if session==None:
-        engine= sqlalchemy.create_engine(config.DB_URL, echo=False)
+        engine= sqlalchemy.create_engine(config.get('Database', 'db_url'), echo=False)
         engine.connect();
         Session=sqlalchemy.orm.sessionmaker(bind=engine)
         session=Session()
@@ -118,7 +118,7 @@ cherrypy.tools.error_recorder = cherrypy.Tool('after_error_response', error_reco
 
 class DBLogPlugin(cherrypy.process.plugins.SimplePlugin):
     def __init__(self, bus, sched_id = None):
-        self.engine= sqlalchemy.create_engine(config.DB_URL, echo=False)
+        self.engine= sqlalchemy.create_engine(config.get('Database', 'db_url'), echo=False)
         self.engine.connect();
         self.Session=sqlalchemy.orm.sessionmaker(bind=self.engine)
 
@@ -161,7 +161,7 @@ class Hits:
         else:
             q=session.query(data.Hit).order_by(data.Hit.id.desc())
 
-        return render_query_paged('system/statistics/hits.genshi', q, int(p), 'hits', config.APP_ROOT+"/statistics/hits/",kwargs)
+        return render_query_paged('system/statistics/hits.genshi', q, int(p), 'hits', config.get('Server', 'root') + "/statistics/hits/",kwargs)
 
 class Sessions:
     _title="Sessions"
@@ -177,7 +177,7 @@ class Sessions:
 
         q = data.Hit.session_query(session).filter(data.Hit.date>=date).order_by(data.Hit.id.desc())
 
-        return render_query_paged('system/statistics/sessions.genshi', q, int(p), 'sessions', config.APP_ROOT+"/statistics/sessions/")
+        return render_query_paged('system/statistics/sessions.genshi', q, int(p), 'sessions', config.get('Server', 'root') + "/statistics/sessions/")
 
     @cherrypy.expose
     @auth.with_acl(['any'])
@@ -210,7 +210,7 @@ class Errors:
 
         q=session.query(data.Error).filter(data.Error.date>=date).order_by(data.Error.hit_id.desc())
 
-        return render_query_paged('system/statistics/errors.genshi', q, int(p), 'errors', config.APP_ROOT+"/statistics/errors/")
+        return render_query_paged('system/statistics/errors.genshi', q, int(p), 'errors', config.get('Server', 'root') +"/statistics/errors/")
 
     @cherrypy.expose
     @persistent
@@ -225,10 +225,11 @@ class ServerLog:
     _title="Server log"
     _caption="Show log entries for the last 90 days."
 
-    _location = config.APP_ROOT+"/statistics/log/"
 
     _class = data.Log
 
+    def __init__(self):
+        self._location = config.root + "/statistics/log/"
     def render(self, p=1, sched_id=None, title=''):
         session=cherrypy.request.db
 

@@ -29,7 +29,7 @@ class expando(object):
             setattr(self, k, v)
 
 def get_WeBIAS():
-    return cherrypy.tree.apps[config.APP_ROOT].root
+    return cherrypy.tree.apps[config.root].root
 
 def gethostbyaddr(ip_address):
     try:
@@ -57,7 +57,7 @@ def get_template_proc():
 
 def in_site(url):
     urlspl= urlparse.urlparse(url)
-    servspl=urlparse.urlparse(config.SERVER_URL)
+    servspl=urlparse.urlparse(config.server_url)
     urlbase=urlspl[1]+urlspl[2]
     servbase=servspl[1]+servspl[2]
 
@@ -103,7 +103,7 @@ def go_back():
         url=None
 
     if url==None:
-        url=config.APP_ROOT
+        url=config.root
 
     raise cherrypy.HTTPRedirect(url)
 

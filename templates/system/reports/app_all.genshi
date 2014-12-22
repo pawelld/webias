@@ -20,4 +20,4 @@ License along with WeBIAS. If not, see
 
 Requests for application ${reportsetting.app.id}
 
-{% include reports_app_requests.genshi %}
+{% include app_requests.genshi %}

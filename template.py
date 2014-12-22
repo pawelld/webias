@@ -17,8 +17,6 @@
 # <http://www.gnu.org/licenses/>.
 
 
-import config
-
 import cherrypy
 import webhelpers.html.tools
 import webhelpers.text
@@ -27,6 +25,9 @@ from genshi.template import NewTextTemplate
 
 import auth
 import util
+import config
+
+import ConfigParser
 
 class TemplateArgs:
     def __init__(self,app=None):
@@ -41,9 +42,8 @@ class TemplateArgs:
 
 
 class TemplateProcessor:
-    def __init__(self,config):
-        self.config=config
-        self.templateLoader=TemplateLoader([self.config.BIAS_DIR+'/templates'],auto_reload=True)
+    def __init__(self):
+        self.templateLoader=TemplateLoader([config.server_dir + '/templates'],auto_reload=True)
 
     def email(self,addr,sbj,body,attachments=[]):
         import smtplib,os
@@ -55,8 +55,8 @@ class TemplateProcessor:
 
         msg=MIMEMultipart()
         msg["To"]      = addr
-        msg["From"]    = self.config.MAIL_FROM
-        msg["Return-Path"] = self.config.MAIL_FROM
+        msg["From"]    = config.get('Mail', 'smtp_mail_from')
+        msg["Return-Path"] = config.get('Mail', 'smtp_mail_from')
         msg["Subject"] = sbj
         msg['Date'] = formatdate(localtime=True)
 
@@ -71,10 +71,13 @@ class TemplateProcessor:
             msg.attach(part)
 
         try:
-            s=smtplib.SMTP(self.config.MAIL_HOST)
-            if self.config.MAIL_PASSWD:
-                s.login(self.config.MAIL_ACC,self.config.MAIL_PASSWD)
-            res = s.sendmail(self.config.MAIL_FROM,addr,msg.as_string())
+            s=smtplib.SMTP(config.get('Mail', 'smtp_host'))
+            try:
+                s.login(config.get('Mail', 'smtp_login'), config.get('Mail', 'smtp_password'))
+            except ConfigParser.NoOptionError:
+                pass
+
+            res = s.sendmail(config.get('Mail', 'smtp_mail_from'),addr,msg.as_string())
             s.quit()
             return res
         except:
@@ -92,7 +95,7 @@ class TemplateProcessor:
             else:
                 raise Exception()
         except:
-            subject="Mesage from %s server."%config.SERVER_NAME
+            subject="Mesage from %s server."%config.get('Server', 'name')
             body=email
 
 
@@ -113,37 +116,37 @@ class TemplateProcessor:
             tmplt=self.templateLoader.load(file, cls=NewTextTemplate)
 
         try:
-            args.mailto=webhelpers.html.tools.mail_to(self.config.E_MAIL, self.config.MAIL_NAME, encode="hex")
+            args.mailto=webhelpers.html.tools.mail_to(config.get('Mail', 'admin_email'), config.get('Mail', 'admin_name'), encode="hex")
         except:
             pass
 
         try:
-            args.e_mail=self.config.E_MAIL
+            args.e_mail=config.E_MAIL
         except:
             pass
 
         try:
-            args.server=self.config.SERVER_NAME
+            args.server=config.get('Server', 'name')
         except:
             pass
 
         try:
-            args.address=self.config.SERVER_URL
+            args.address=config.server_url
         except:
             pass
 
         try:
-            args.css=self.config.CSS_URL
+            args.css=config.get('Server', 'css_url')
         except:
             pass
 
         try:
-            args.media=self.config.APP_ROOT+'/media'
+            args.media=config.root + '/media'
         except:
             pass
 
         try:
-            args.root=self.config.APP_ROOT
+            args.root=config.root
         except:
             pass
 
@@ -154,7 +157,7 @@ class TemplateProcessor:
         else:
             args.navigation_bar = util.get_WeBIAS().navigation_bar()
 
-        args.template_base = self.config.BIAS_DIR+'/templates'
+        args.template_base = config.server_dir + '/templates'
         args.login=auth.get_login()
 
         stream = tmplt.generate(**args.__dict__)

@@ -1,19 +1,19 @@
 # Copyright 2013 Pawel Daniluk
-# 
+#
 # This file is part of WeBIAS.
-# 
+#
 # WeBIAS is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as 
-# published by the Free Software Foundation, either version 3 of 
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of
 # the License, or (at your option) any later version.
-# 
+#
 # WeBIAS is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
-# 
-# You should have received a copy of the GNU Affero General Public 
-# License along with WeBIAS. If not, see 
+#
+# You should have received a copy of the GNU Affero General Public
+# License along with WeBIAS. If not, see
 # <http://www.gnu.org/licenses/>.
 
 import urllib2 as urllib
@@ -22,7 +22,7 @@ import os.path
 
 import config
 
-cachedir=config.DBCACHE_DIR+"/biodb/"
+cachedir=config.server_dir + "/dbcache/biodb/"
 
 
 def addDBDir(handler):
@@ -121,7 +121,7 @@ class SCOPHandler(DBHandler):
     @validateID
     @addDBDir
     def getFileLocation(self, val):
-        return '%s/%s.ent' % (val[2:4],val) 
+        return '%s/%s.ent' % (val[2:4],val)
 
 class PDBHandler(DBHandler):
 
@@ -133,7 +133,7 @@ class PDBHandler(DBHandler):
         if len(val)!=4:
             return False
 
-        if not val[0].isdigit() or not val[1:3].isalnum(): 
+        if not val[0].isdigit() or not val[1:3].isalnum():
             return False
 
         return True
@@ -141,5 +141,5 @@ class PDBHandler(DBHandler):
     @validateID
     @addDBDir
     def getFileLocation(self, val):
-        return '%s/%s.pdb' % (val[2:4],val) 
+        return '%s/%s.pdb' % (val[2:4],val)
 
