@@ -125,17 +125,24 @@ class DBLogPlugin(cherrypy.process.plugins.SimplePlugin):
         self.log_class = data.Log if sched_id is None else data.SchedulerLog
         self.sched_id = sched_id
 
+        self.started = False
+
         cherrypy.process.plugins.SimplePlugin.__init__(self, bus)
 
     def start(self):
         self.bus.log('Starting up DB logging')
-        self.bus.subscribe("log", self.log)
+        self.started = True
+        # self.bus.subscribe("log", self.log)
 
     def stop(self):
         self.bus.log('Stopping down DB logging')
-        self.bus.unsubscribe("log", self.log)
+        self.started = False
+        # self.bus.unsubscribe("log", self.log)
 
     def log(self, message, level):
+        if not self.started:
+            return
+
         session = self.Session()
         log = self.log_class(date=datetime.datetime.now(), message=message, level=level)
         if self.sched_id is not None:

@@ -20,6 +20,9 @@
 from subprocess import Popen, PIPE
 import re
 
+from scheduler.interfaces import *
+import config
+
 def is_running(pid):
     torqout = Popen("qstat -f %d" % pid, shell=True, stdout=PIPE, stderr=PIPE)
     if re.match("qstat: Unknown Job Id", str(torqout.stderr.read())):
@@ -32,10 +35,10 @@ def is_running(pid):
             else:
                 return False
 
-def queue_run(JOB_DIR, command, errfile, outfile, config):
-    command_qsub=JOB_DIR + '/' + config.CMD_FILE + '.qsub'
-    fh=open(JOB_DIR + '/' + config.CMD_FILE + '.qsub', 'w')
-    fh.write('%s %s %s %s' % (self.config.RUNNER, command, errfile, outfile))
+def queue_run(JOB_DIR):
+    command_qsub=JOB_DIR + '/' + get_cmdfile() + '.qsub'
+    fh=open(JOB_DIR + '/' + get_cmdfile() + '.qsub', 'w')
+    fh.write('%s %s %s %s' % (config.runner, get_cmdfile(), get_errfile(), get_resfile()))
     fh.close()
 
     cmd='qsub -d %s %s' % (JOB_DIR, command_qsub)

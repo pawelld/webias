@@ -21,6 +21,9 @@
 
 from subprocess import Popen, PIPE
 
+from scheduler.interfaces import *
+
+import config
 import sys
 
 def is_running(pid):
@@ -30,6 +33,6 @@ def is_running(pid):
     else:
         return True
 
-def queue_run(JOB_DIR, command, errfile, outfile, config):
-    pid = Popen([config.RUNNER, command, errfile, outfile], cwd=JOB_DIR).pid
+def queue_run(JOB_DIR):
+    pid = Popen([config.runner, get_cmdfile(), get_errfile(), get_resfile()], cwd=JOB_DIR).pid
     return pid

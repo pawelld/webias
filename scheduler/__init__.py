@@ -25,57 +25,57 @@ from genshi.template import NewTextTemplate
 import gnosis.xml.objectify as objectify
 import template
 
+import operator
+
 import statistics
 
 import scheduler.interfaces.slurm
 
 import cherrypy
 
-SLEEP_TIME=5
+import config
 
-config=None
+def get_dbsched(session, sched_id):
+    dbsched=session.query(data.Scheduler).get(config.sched_id)
 
+    if dbsched==None:
+        dbsched=data.Scheduler(config.sched_id)
+        session.add(dbsched)
+        try:
+            session.commit()
+        except:
+            pass
+
+    return dbsched
 
 class LockPlugin(cherrypy.process.plugins.SimplePlugin):
-    def __init__(self, bus, sched_id, config, forcelock=False):
+    def __init__(self, bus, forcelock=False):
         self.forcelock = forcelock
-        self.sched_id = sched_id
-        self.config = config
-        self.engine = sqlalchemy.create_engine(config.DB_URL, echo=False)
+        self.engine = sqlalchemy.create_engine(config.db_url, echo=False)
         self.engine.connect();
         self.Session = sqlalchemy.orm.sessionmaker(bind=self.engine)
         cherrypy.process.plugins.SimplePlugin.__init__(self, bus)
 
+        session=self.Session()
+        get_dbsched(session, config.sched_id)
+
     def grab_lock(self):
         session=self.Session()
 
-        dbsched=session.query(data.Scheduler).get(self.sched_id)
-
-        if dbsched==None:
-            dbsched=data.Scheduler(self.sched_id)
-            session.add(dbsched)
-            try:
-                session.commit()
-            except:
-                pass
-
         try:
-            dbsched=session.query(data.Scheduler).with_lockmode('update').get(self.sched_id)
+            dbsched=session.query(data.Scheduler).with_lockmode('update').get(config.sched_id)
 
             if dbsched.status!='STOPPED':
-                raise Exception("Scheduler %s already has status %s." % (self.sched_id, dbsched.status))
+                raise Exception("Scheduler %s already has status %s." % (config.sched_id, dbsched.status))
 
             dbapps=[]
 
             try:
-                self.config.APPS
+                apps = eval(config.get('Scheduler', 'apps'))
             except:
-                self.config.APPS=None
-
-            if self.config.APPS != None:
-                dbapps=session.query(data.Application).filter(data.Application.id.in_(self.config.APPS)).all()
-            else:
                 dbapps=session.query(data.Application).all()
+            else:
+                dbapps=session.query(data.Application).filter(data.Application.id.in_(apps)).all()
 
             dbsched.apps=dbapps
             dbsched.status='RUNNING'
@@ -102,7 +102,7 @@ class LockPlugin(cherrypy.process.plugins.SimplePlugin):
         session=self.Session()
 
         try:
-            dbsched=session.query(data.Scheduler).with_lockmode('update').get(self.sched_id)
+            dbsched=session.query(data.Scheduler).with_lockmode('update').get(config.sched_id)
 
             if dbsched.status!='STOPPED':
                 dbsched.status='STOPPED'
@@ -113,7 +113,7 @@ class LockPlugin(cherrypy.process.plugins.SimplePlugin):
 
                 session.commit()
             else:
-                raise Exception("Scheduler %s is already stopped." % (self.sched_id))
+                raise Exception("Scheduler %s is already stopped." % (config.sched_id))
 
             session.close()
             return True
@@ -142,16 +142,14 @@ class LockPlugin(cherrypy.process.plugins.SimplePlugin):
 
 
 class SchedulerPlugin(cherrypy.process.plugins.Monitor):
-    def __init__(self, bus, sched_id, config, queue_interface):
-        self.config = config
-        self.slots = config.SLOTS
+    def __init__(self, bus, queue_interface):
+        self.slots = config.getint('Scheduler', 'slots')
         self.running = 0
-        self.sched_id = sched_id
-        self.frequency = SLEEP_TIME
-        self.engine = sqlalchemy.create_engine(config.DB_URL, echo=False, pool_recycle=1800)
+        self.frequency = config.getint('Scheduler', 'sleep_time')
+        self.engine = sqlalchemy.create_engine(config.db_url, echo=False, pool_recycle=1800)
         self.engine.connect()
         self.Session = sqlalchemy.orm.sessionmaker(bind=self.engine)
-        self.templateProcessor = template.TemplateProcessor(config)
+        self.templateProcessor = template.TemplateProcessor()
         self.queue_interface = queue_interface
         cherrypy.process.plugins.Monitor.__init__(self, bus, self.run, self.frequency)
 
@@ -162,24 +160,27 @@ class SchedulerPlugin(cherrypy.process.plugins.Monitor):
             self.sow()
         except RuntimeError, msg:
             if msg:
-                cherrypy.engine.log(msg)
+                cherrypy.engine.log("Error in scheduler loop: " + str(msg))
+                cherrypy.engine.log(''.join(traceback.format_exception(*sys.exc_info())))
 
 
     def running_reqs(self, session):
-        reqs=session.query(data.Request).filter(data.Request.status == 'PROCESSING', data.Request.sched_id == self.sched_id).all()
+        reqs=session.query(data.Request).filter(data.Request.status == 'PROCESSING', data.Request.sched_id == config.sched_id).all()
         return reqs
 
     def get_uncollected_runs(self, session):
-        runs=session.query(data.Run).join(data.Request).filter(data.Run.status == 'RUNNING', data.Request.sched_id == self.sched_id).all()
+        runs=session.query(data.Run).join(data.Request).filter(data.Run.status == 'RUNNING', data.Request.sched_id == config.sched_id).all()
 
         for run in runs:
             if not self.queue_interface.is_running(run.pid):
                 yield run
 
     def grab_request(self, session):
-        dbsched=session.query(data.Scheduler).get(self.sched_id)
+        dbsched=session.query(data.Scheduler).get(config.sched_id)
 
-        req=session.query(data.Request).filter(data.Request.status == 'READY', data.Request.sched == None, data.Request.app_id.in_(self.config.APPS)).with_lockmode('update').first()
+        app_ids = map(operator.attrgetter('id'), dbsched.apps)
+
+        req=session.query(data.Request).filter(data.Request.status == 'READY', data.Request.sched == None, data.Request.app_id.in_(app_ids)).with_lockmode('update').first()
 
         if req != None:
             req.sched = dbsched
@@ -204,14 +205,14 @@ class SchedulerPlugin(cherrypy.process.plugins.Monitor):
         session.commit()
 
         try:
-            JOB_DIR = run.get_job_dir(self.config.WRK_DIR)
+            JOB_DIR = run.get_job_dir(config.get('Scheduler', 'work_dir'))
             os.makedirs(JOB_DIR)
 
             query = objectify.make_instance(req.query, p=objectify.DOM)
 
             cmd = NewTextTemplate(req.app.param_template).generate(**query.__dict__).render('text').strip()
 
-            fh = open(JOB_DIR+'/'+self.config.CMD_FILE,'w')
+            fh = open(JOB_DIR+'/'+config.get('Scheduler', 'cmd_file'),'w')
             fh.write(cmd)
             fh.close()
 
@@ -220,7 +221,7 @@ class SchedulerPlugin(cherrypy.process.plugins.Monitor):
             for f in files:
                 f.write(JOB_DIR)
 
-            pid = self.queue_interface.queue_run(JOB_DIR,self.config.CMD_FILE,self.config.ERR_FILE,self.config.RES_FILE, self.config)
+            pid = self.queue_interface.queue_run(JOB_DIR)
 
             self.running += 1
 
@@ -239,10 +240,10 @@ class SchedulerPlugin(cherrypy.process.plugins.Monitor):
 
     def collect(self, session, run):
 
-        job_dir = run.get_job_dir(self.config.WRK_DIR)
+        job_dir = run.get_job_dir(config.get('Scheduler', 'work_dir'))
 
-        resfile = '%s/%s' % (job_dir, self.config.RES_FILE)
-        errfile = '%s/%s' % (job_dir, self.config.ERR_FILE)
+        resfile = '%s/%s' % (job_dir, config.get('Scheduler', 'res_file'))
+        errfile = '%s/%s' % (job_dir, config.get('Scheduler', 'err_file'))
 
         ok = False
 
@@ -285,12 +286,12 @@ class SchedulerPlugin(cherrypy.process.plugins.Monitor):
             self.templateProcessor.email_message(req.user.e_mail, template, app=req.app, uuid=req.uuid)
 
     def ping(self, session):
-        dbsched = session.query(data.Scheduler).get(self.sched_id)
+        dbsched = session.query(data.Scheduler).get(config.sched_id)
         dbsched.last_act = time.strftime("%Y-%m-%d %H:%M:%S")
         session.commit()
 
     def last_ping(self, session):
-        dbsched = session.query(data.Scheduler).get(self.sched_id)
+        dbsched = session.query(data.Scheduler).get(config.sched_id)
         last_act = time.mktime(time.strptime(str(dbsched.last_act), "%Y-%m-%d %H:%M:%S"))
         return time.mktime(time.localtime())-last_act
 
@@ -320,29 +321,26 @@ def main():
     from optparse import OptionParser
 
     parser = OptionParser()
+    parser = OptionParser(usage="usage: %prog [options] server_dir [scheduler_id]")
     parser.add_option("--foreground", action="store_true", dest="foreground")
     parser.add_option("--removelock", action="store_true", dest="removelock")
     (options, args)=parser.parse_args()
 
-    config_file=args[0]
+    if len(args) not in (1, 2):
+        parser.error("incorrect number of arguments")
 
-    if not os.path.exists(config_file):
-        config_file+='.py'
-
-    try:
-        config=imp.load_source('config', config_file)
-    except:
-        print "Cannot load config file: %s\n" % (config_file)
-        sys.exit(2)
+    config.load_config(args[0])
 
     try:
         sched_id=args[1]
     except:
-        sched_id=config.SCHED_ID
+        sched_id=config.sched_id
+    else:
+        config.set_sched_id(sched_id)
 
     if options.removelock:
-        statistics.DBLogPlugin(cherrypy.engine, sched_id=sched_id).subscribe()
-        LockPlugin(cherrypy.engine, sched_id, config, forcelock=True).subscribe()
+        statistics.DBLogPlugin(cherrypy.engine, sched_id=config.sched_id).subscribe()
+        LockPlugin(cherrypy.engine, forcelock=True).subscribe()
         cherrypy.engine.start()
         cherrypy.engine.block()
 
@@ -350,13 +348,12 @@ def main():
     from cherrypy.process.plugins import Daemonizer, PIDFile, DropPrivileges
 #    DropPrivileges(cherrypy.engine, umask=0022, uid=1044, gid=1000).subscribe()
 
+    LockPlugin(cherrypy.engine).subscribe()
+    SchedulerPlugin(cherrypy.engine, interfaces.slurm).subscribe()
 
-    PIDFile(cherrypy.engine, config.PID_FILE).subscribe()
+    PIDFile(cherrypy.engine, config.get('Server', 'pid_file')).subscribe()
     cherrypy.engine.signal_handler.subscribe()
-    statistics.DBLogPlugin(cherrypy.engine, sched_id=sched_id).subscribe()
-
-    LockPlugin(cherrypy.engine, sched_id, config).subscribe()
-    SchedulerPlugin(cherrypy.engine, sched_id, config, interfaces.slurm).subscribe()
+    statistics.DBLogPlugin(cherrypy.engine, sched_id=config.sched_id).subscribe()
 
     cherrypy.server.unsubscribe()
 
