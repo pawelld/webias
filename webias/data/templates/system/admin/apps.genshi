@@ -1,0 +1,79 @@
+<!--!
+Copyright 2013 Pawel Daniluk, Bartek Wilczynski
+
+This file is part of WeBIAS.
+
+WeBIAS is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as 
+published by the Free Software Foundation, either version 3 of 
+the License, or (at your option) any later version.
+
+WeBIAS is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public 
+License along with WeBIAS. If not, see 
+<http://www.gnu.org/licenses/>.
+-->
+
+<html xmlns:py="http://genshi.edgewall.org/" encoding="utf-8" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <xi:include href="${base}" />
+	<head>
+		<title>Applications</title>
+	</head>
+	<body>
+		<h1>Applications</h1>
+
+		<?python
+			from itertools import cycle
+		?>
+
+		<table class="table" py:with="cls=cycle(('odd','even'))" >
+			<tr>
+				<th>Application</th>
+				<th>Enabled</th>
+                <th>Permissions</th>
+				<th>Definition</th>
+				<th>Requests</th>
+				<th>Submitted</th>
+				<th>Running</th>
+				<th>Failed</th>
+				<th>Successful</th>
+				<th>Action</th>
+				<th py:if="admin">Change perm.</th>
+			</tr>
+
+			<py:def function="req_link(stat)">
+				<a href="requests/${app.id}/${stat}" py:strip="stats[stat]==0 or not view_allowed[app.id]">${stats[stat]}</a>
+			</py:def>
+
+			<tr py:for="app in apps" py:with="stats=app.get_stats()" class="${cls.next()}">
+				<td>${app.id}</td>
+				<td class="center">${app.enabled and 'Yes' or 'No'}</td>
+                <td class="center">${app.access_level_dict[app.access]}</td>
+				<td>
+					<py:if test="loaded_test(app)"><a py:strip="not admin_allowed[app.id]"  href="definition/${app.id}">${app.definition}</a></py:if>
+					<py:if test="not loaded_test(app)">&mdash;</py:if>
+				</td>
+				<td class="right">${req_link('')}</td>
+				<td class="right">${req_link('READY')}</td>
+				<td class="right">${req_link('PROCESSING')}</td>
+				<td class="right">${req_link('FAILED')}</td>
+				<td class="right">${req_link('FINISHED')}</td>
+				<!--				<td><a py:if="not app.enabled" href="delete/${app.id}">Delete</a></td>-->
+				<td>
+					<a py:if="admin_allowed[app.id] and loaded_test(app) and not app.enabled" href="enable/${app.id}">Enable</a>
+					<a py:if="admin_allowed[app.id] and loaded_test(app) and app.enabled" href="disable/${app.id}">Disable</a>
+				</td>
+				<td py:if="admin">
+                    <py:for each="lvl in app.access_levels">
+					    <a py:strip="app.access == lvl" href="setaccess/${app.id}/${lvl}"><b py:strip="app.access != lvl">${app.access_level_dict[lvl][0]}</b></a>
+                    </py:for>
+				</td>
+			</tr>
+		</table>
+	</body>
+</html>
+

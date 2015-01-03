@@ -1,0 +1,40 @@
+<!--!
+Copyright 2013 Pawel Daniluk, Bartek Wilczynski
+
+This file is part of WeBIAS.
+
+WeBIAS is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as 
+published by the Free Software Foundation, either version 3 of 
+the License, or (at your option) any later version.
+
+WeBIAS is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public 
+License along with WeBIAS. If not, see 
+<http://www.gnu.org/licenses/>.
+-->
+
+<html xmlns:py="http://genshi.edgewall.org/" encoding="utf-8" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <xi:include href="${base}" />
+
+	<py:def function="inname()"><py:if test="defined('name') and name!=None"> in ${name}</py:if></py:def>
+	<head>
+		<title>List of applications${inname()}</title>
+	</head>
+	<body>
+		<h1>List of applications${inname()} on ${server} server.</h1>
+		<p py:if="defined('description') and description!=None" name="description">${Markup(description)}</p>
+		<p>Currently available services:</p>
+		<dl>
+			<py:for each="app in apps">
+				<dt><a href="${app.id}/"> ${app.name}</a></dt>
+				<dd><b>${app.info}</b></dd>
+			</py:for>
+		</dl>
+	</body>
+</html>
+

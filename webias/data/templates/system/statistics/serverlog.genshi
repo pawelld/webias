@@ -1,0 +1,53 @@
+<!--!
+Copyright 2014 Pawel Daniluk, Bartek Wilczynski
+
+This file is part of WeBIAS.
+
+WeBIAS is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as 
+published by the Free Software Foundation, either version 3 of 
+the License, or (at your option) any later version.
+
+WeBIAS is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public 
+License along with WeBIAS. If not, see 
+<http://www.gnu.org/licenses/>.
+-->
+
+<html xmlns:py="http://genshi.edgewall.org/" encoding="utf-8" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <xi:include href="${base}" />
+	<head>
+		<title>${title}</title>
+	</head>
+	<body>
+		<h1>${title}</h1>
+
+		<?python
+			from itertools import cycle
+		?>
+
+		<table class="table" style="width:auto;" py:with="cls=cycle(('odd','even'))" >
+			<tr>
+				<th>Date</th>
+				<th>Level</th>
+				<th>Message</th>
+				<th>Action</th>
+			</tr>
+
+			<tr py:for="event in events"  class="${cls.next()}">
+				<?python
+                    short_message = event.message[0:50] + ('...' if len(event.message) > 50 else '')
+				?>
+				<td>${event.date}</td>
+				<td class="center">${event.level}</td>
+				<td title="${event.message}">${short_message}</td>
+				<td><a href="show/${event.id}">Details</a></td>
+			</tr>
+		</table>
+		${pager(page, pages, page_addr)}
+	</body>
+</html>

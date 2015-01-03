@@ -1,0 +1,77 @@
+<!--!
+Copyright 2013 Pawel Daniluk, Bartek Wilczynski
+
+This file is part of WeBIAS.
+
+WeBIAS is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as 
+published by the Free Software Foundation, either version 3 of 
+the License, or (at your option) any later version.
+
+WeBIAS is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public 
+License along with WeBIAS. If not, see 
+<http://www.gnu.org/licenses/>.
+-->
+
+<html xmlns:py="http://genshi.edgewall.org/" encoding="utf-8" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <xi:include href="${base}" />
+	<head>
+		<title>Requests</title>
+	</head>
+	<body>
+		<h1>Requests</h1>
+
+		<?python
+			from itertools import cycle
+		?>
+
+		<div class="center">
+		<ul class="sideways">
+			<py:if test="all">
+				<li><a href="${root}/user/requests/">Starred</a></li><li>All</li>
+			</py:if>
+			<py:if test="not all">
+				<li>Starred</li><li><a href="${root}/user/requests/?all">All</a></li>
+			</py:if>
+		</ul>
+		</div>
+
+		<table class="table" style="width: auto;" py:with="cls=cycle(('odd','even'))" >
+			<tr>
+				<th></th>
+				<th>Date</th>
+				<th>Application</th>
+				<th>Tag</th>
+				<th>Status</th>
+				<th>Show</th>
+				<th>Action</th>
+			</tr>
+			<tr py:for="req in requests"  class="${cls.next()}">
+				<td>
+					<a py:if="req.starred" href="${root}/user/requests/unstar/${req.uuid}"><img src="${media}/star_yellow.png"/></a>
+					<a py:if="not req.starred" href="${root}/user/requests/star/${req.uuid}"><img src="${media}/star_grey.png"/></a>
+				</td>
+				<td>${req.date}</td>
+				<td>${req.app_id}</td>
+				<td>${req.tag}</td>
+				<td>${req.status}</td>
+				<td>
+					<a py:if="req.status == 'FINISHED'" href="${root}/${req.app_id}/result/${req.uuid}">Results</a>
+					<a py:if="req.status != 'FINISHED'" href="${root}/${req.app_id}/params/${req.uuid}">Parameters</a>
+				</td>
+				<td>
+					<a py:if="req.status in ('FINISHED','FAILED')" href="${root}/user/requests/rerun/${req.uuid}">Rerun</a>
+					<a href="${root}/user/requests/asnew/${req.uuid}">As new</a>
+				</td>
+			</tr>
+		</table>		
+
+		${pager(page, pages, page_addr)}
+	</body>
+</html>
+

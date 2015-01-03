@@ -1,0 +1,60 @@
+[Database]
+#db_login = ***
+#db_password = ***
+#db_host = localhost
+#db_name = WeBIAS
+db_url = mysql://%%(db_login)s:%%(db_password)s@%%(db_host)s/%%(db_name)s
+
+[Mail]
+#smtp_login = ***
+#smtp_password = ***
+#smtp_host = smtp.mydomain.com
+#smtp_mail_from = webias@mydomain.com
+
+#admin_name = Joe Admin
+#admin_email = joe@mydomain.com
+
+[Server]
+#name = WeBIAS site
+#root = /
+#server_url = http://webias.mydomain.com/%%(root)s
+css_url = %%(root)s/media/WeBIAS.css
+
+proxy = True
+server_host = 0.0.0.0
+server_port = 8080
+## server_ssl_port = 443
+## ssl_cert = /var/WeBIAS/biasdev/cert/host.crt
+## ssl_key = /var/WeBIAS/biasdev/cert/host.key
+## ssl_cert_chain = ""
+#pid_file = /tmp/WeBIAS.pid
+#access_log = /var/log/WeBIAS/access.log
+#error_log = /var/log/WeBIAS/error.log
+
+mime_types = {'png':'image/png','html':'text/html','htm':'text/html' ,'txt':'text/plain'}
+
+[Scheduler]
+# allowed types are torque, slurm, batch
+#type = slurm
+#sched_id = Default
+cmd_file = BIAS.cmd
+err_file = BIAS.status
+res_file = BIAS.result
+#work_dir = /var/spool/WeBIAS/
+#runner = %(server_dir)s/runner.py
+
+#Number of tasks that can be processed concurrently (0 = unlimited)
+slots = 0
+sleep_time = 5
+
+#[Scheduler:sched_name]
+#type = batch
+#cmd_file = BIAS.cmd
+#err_file = BIAS.status
+#res_file = BIAS.result
+#work_dir = /var/spool/WeBIAS/
+#runner = %(server_dir)s/runner.py
+
+#Number of tasks that can be processed concurrently (0 = unlimited)
+#slots = 0
+#sleep_time = 5

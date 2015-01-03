@@ -1,0 +1,82 @@
+<!--!
+Copyright 2013 Pawel Daniluk, Bartek Wilczynski
+
+This file is part of WeBIAS.
+
+WeBIAS is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as 
+published by the Free Software Foundation, either version 3 of 
+the License, or (at your option) any later version.
+
+WeBIAS is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public 
+License along with WeBIAS. If not, see 
+<http://www.gnu.org/licenses/>.
+-->
+
+<html xmlns:py="http://genshi.edgewall.org/" encoding="utf-8" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <xi:include href="${base}" />
+	<head>
+		<title>User ACL</title>
+	</head>
+	<body>
+		<h1>Privileges of user ${user.login}</h1>
+
+		<?python
+			from itertools import cycle
+		?>
+
+		<h2>Applications</h2>
+
+		<table class="table" py:with="cls=cycle(('odd','even'))" >
+			<tr>
+				<th>Application</th>
+				<th>Enabled</th>
+				<th py:for="header in app_privileges">${app_privileges[header]}</th>
+			</tr>
+
+			<py:def function="yn_link(ent, priv, data, link)">
+                <py:choose test="data[ent.id][priv]">
+                    <py:when test="True"><a href="../${link}/${user.id}/${ent.id}/${priv}/0">No</a> <b>Yes</b> </py:when>
+                    <py:otherwise><b>No</b> <a href="../${link}/${user.id}/${ent.id}/${priv}/1">Yes</a></py:otherwise>
+                </py:choose>
+
+			</py:def>
+
+			<tr py:for="app in apps" class="${cls.next()}">
+				<td>${app.id}</td>
+				<td class="center">${app.enabled and 'Yes' or 'No'}</td>
+				<td py:for="priv in app_privileges"  class="center">${yn_link(app, priv, app_data, 'aclset_app')}</td>
+			</tr>
+		</table>
+
+		<h2>Schedulers</h2>
+
+		<table class="table" py:with="cls=cycle(('odd','even'))" >
+			<tr>
+				<th>Scheduler</th>
+				<th>Status</th>
+				<th py:for="header in sched_privileges">${sched_privileges[header]}</th>
+			</tr>
+
+			<py:def function="yn_link(ent, priv, data, link)">
+                <py:choose test="data[ent.id][priv]">
+                    <py:when test="True"><a href="../${link}/${user.id}/${ent.id}/${priv}/0">No</a> <b>Yes</b> </py:when>
+                    <py:otherwise><b>No</b> <a href="../${link}/${user.id}/${ent.id}/${priv}/1">Yes</a></py:otherwise>
+                </py:choose>
+
+			</py:def>
+
+			<tr py:for="sched in schedulers" class="${cls.next()}">
+				<td>${sched.id}</td>
+				<td class="center">${sched.status}</td>
+				<td py:for="priv in sched_privileges"  class="center">${yn_link(sched, priv, sched_data, 'aclset_sched')}</td>
+			</tr>
+		</table>
+	</body>
+</html>
+

@@ -1,0 +1,59 @@
+<!--!
+Copyright 2013 Pawel Daniluk, Bartek Wilczynski
+
+This file is part of WeBIAS.
+
+WeBIAS is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as 
+published by the Free Software Foundation, either version 3 of 
+the License, or (at your option) any later version.
+
+WeBIAS is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public 
+License along with WeBIAS. If not, see 
+<http://www.gnu.org/licenses/>.
+-->
+
+<html xmlns:py="http://genshi.edgewall.org/" encoding="utf-8"
+xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="${base}" />
+  <head>
+    <title>Change role</title>
+    <link rel="StyleSheet" href="${media}/form.css" type="text/css" media="all" />
+  </head>
+  <body>
+    <div class="center">
+
+      <form name="role" enctype="multipart/form-data" action="../roleset" method="post"> <div class="login">
+		<div class="element">
+			<span class="title">Change role for user ${user.login}</span>
+		</div>
+
+        <input type="hidden" name="id" value="${user.id}"/>
+
+        <?python
+            def role_matches(role):
+                if (user.role is None):
+                    return role=='NORMAL'
+                return user.role.name==role
+        ?>
+
+		<div class="fields">
+		    <div py:for="role in sorted(roles)" class="element">
+    			<span class="label">${roles[role]}</span>
+			    <span class="component"><input type="radio" name="role"  py:attrs="{'checked': 'true' if role_matches(role) else None}"  value="${role}"/></span>
+	    	</div>
+		</div>
+		<div class="element submit">
+			<button type="submit" name="cancel" value="1">Cancel</button>
+			<button type="submit">Save</button>
+		</div>
+	  </div></form>
+    </div>
+  </body>
+</html>
+

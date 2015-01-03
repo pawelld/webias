@@ -1,0 +1,35 @@
+<bias>
+
+<application id="Test" name="Test" info="Hello World.">
+    <description>
+		This is the simplest application.
+    </description>
+    <setup>
+		<help_url>/WeBIASDemo/page/Test/help</help_url>
+        <param_template>%(server_dir)s/examples/test.py --name="${name.PCDATA}" --mood=${mood.PCDATA}</param_template>
+		<param_table_template>examples/Test/param_table.genshi</param_table_template>
+    </setup>
+    
+    <parameters>
+		<email/>
+		<section id="SectionInput" title="Test application"/>
+		<text
+			id="name"
+			name="Name"
+			tip="What is you name?"
+			info="name"
+			optional="no"
+			help="#name"
+		/>
+
+		<select id="mood" name="How are you?" info="mood" optional="no" tip="C'mon, just tell me." help="#mood" >
+			<option value="0" text="Fine, thanks."/>
+			<option value="1" text="Not bad."/>
+			<option value="2" text="Don't even ask."/>
+			<option value="3" text="Go away you insensitive clod."/>
+		</select>
+    </parameters>
+</application>
+
+</bias>
+

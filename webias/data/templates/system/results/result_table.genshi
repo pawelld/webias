@@ -1,0 +1,42 @@
+<!--!
+Copyright 2013 Pawel Daniluk, Bartek Wilczynski
+
+This file is part of WeBIAS.
+
+WeBIAS is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as 
+published by the Free Software Foundation, either version 3 of 
+the License, or (at your option) any later version.
+
+WeBIAS is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public 
+License along with WeBIAS. If not, see 
+<http://www.gnu.org/licenses/>.
+-->
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+xmlns:py="http://genshi.edgewall.org/" py:strip="">
+<div id="center">
+  	<?python
+  		import webias.gnosis.xml.objectify as objectify
+  		from itertools import cycle
+  	?>
+  	<table py:with="cls=cycle(('odd','even'))" >
+  		<tr><th colspan="2">Result</th></tr>
+  		<tr py:for="(d,par) in result.walk()" class="${cls.next()}" py:with="gr=(par.type=='group' and ' group' or '')">
+  			<td class="lev${d}${gr}">${objectify.tagname(par).replace('_',' ')}</td>
+  			<td>
+  				<py:choose test="par.type">
+  					<py:when test="'value'">${par.PCDATA}</py:when>
+  					<py:when test="'file'"><a href="${root}/${app}/file?uuid=${uuid}&amp;pathname=${result.path(par)}/${par.PCDATA}">${par.PCDATA}</a></py:when>
+  					<py:otherwise>&nbsp;</py:otherwise>
+  				</py:choose>
+  			</td>
+  		</tr>
+  	</table>
+</div>
+</html>

@@ -1,0 +1,18 @@
+<html xmlns:py="http://genshi.edgewall.org/" encoding="utf-8" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <xi:include href="${base}" />
+	<head>
+		<title>Sample page</title>
+	</head>
+	<body>
+		<div>
+
+			<h1>Sample page on the ${server} server</h1>
+
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus molestie rutrum aliquam. Phasellus feugiat blandit tellus, non vulputate dolor mattis at. Phasellus vehicula sodales vulputate. Nulla facilisi. Etiam nec mauris eget nibh molestie vulputate. Maecenas ultricies semper justo ut adipiscing. Curabitur sit amet orci ante. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi iaculis cursus euismod. Ut lacinia quam et eros lobortis convallis. Quisque sagittis mi porttitor lorem dictum eu tincidunt ante euismod. Nunc aliquam nibh quis nisl placerat vel malesuada quam suscipit. Nullam convallis adipiscing nisi, ac faucibus nibh interdum at.</p>
+
+			<p>Fusce sit amet congue mauris. Donec sed neque a nulla consequat bibendum. Proin vitae nibh velit. Duis ut iaculis risus. Cras id sem erat. Etiam tortor orci, venenatis in imperdiet a, rutrum in nisi. Morbi eu velit sed odio ullamcorper gravida. Nullam sed tortor felis. Ut quis malesuada tellus. Nunc volutpat felis at magna tempus imperdiet. Maecenas eros turpis, facilisis vel dapibus et, lacinia ut felis. Vivamus at orci erat. Nunc non magna diam, nec interdum enim.</p>
+
+
+		</div>
+	</body>
+</html>

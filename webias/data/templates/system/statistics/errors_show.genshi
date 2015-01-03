@@ -1,0 +1,66 @@
+<!--!
+Copyright 2013 Pawel Daniluk, Bartek Wilczynski
+
+This file is part of WeBIAS.
+
+WeBIAS is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as 
+published by the Free Software Foundation, either version 3 of 
+the License, or (at your option) any later version.
+
+WeBIAS is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public 
+License along with WeBIAS. If not, see 
+<http://www.gnu.org/licenses/>.
+-->
+
+<html xmlns:py="http://genshi.edgewall.org/" encoding="utf-8" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <xi:include href="${base}" />
+	<head>
+		<title>Error details</title>
+		
+		<style type="text/css">
+			pre {
+				margin: 0px;
+				font-size: smaller;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Error details</h1>
+
+		<?python
+			from itertools import cycle
+
+			error.resolve()
+		?>
+
+		
+
+
+		<table class="table" style="width:auto;" py:with="cls=cycle(('odd','even'))" >
+			<tr><th colspan="2"></th></tr>
+			<py:def function="print_row(label, data, multiline=False)">
+				<tr py:if="data!=None" class="${cls.next()}">
+					<td>${label}</td>
+					<td><pre py:strip="not multiline">${data}</pre></td>
+				</tr>
+			</py:def>
+
+			${print_row('Date', error.date)}
+			${print_row('User', error.user_login)}
+			${print_row('Remote IP', error.ip_address)}
+			${print_row('Remote domain', error.domain)}
+			${print_row('URL', error.url)}
+			${print_row('Status', error.status)}
+			${print_row('Session ID', error.session)}
+			${print_row('HTTP request', error.request, True)}
+			${print_row('Session', error.session_dump, True)}
+			${print_row('Traceback', error.traceback, True)}
+		</table>
+	</body>
+</html>

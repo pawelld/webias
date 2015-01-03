@@ -1,0 +1,64 @@
+<!--!
+Copyright 2013 Pawel Daniluk, Bartek Wilczynski
+
+This file is part of WeBIAS.
+
+WeBIAS is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as 
+published by the Free Software Foundation, either version 3 of 
+the License, or (at your option) any later version.
+
+WeBIAS is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public 
+License along with WeBIAS. If not, see 
+<http://www.gnu.org/licenses/>.
+-->
+
+<html xmlns:py="http://genshi.edgewall.org/" encoding="utf-8" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <xi:include href="${base}" />
+	<head>
+		<title>HTTP hits</title>
+	</head>
+	<body>
+		<h1>HTTP hits</h1>
+
+		<?python
+			from itertools import cycle
+		?>
+
+		<table class="table" style="width:auto;" py:with="cls=cycle(('odd','even'))" >
+			<tr>
+				<th>Date</th>
+				<th>User</th>
+				<th>Client address</th>
+				<th>URL</th>
+				<th>Status</th>
+				<th>Session</th>
+			</tr>
+
+			<tr py:for="hit in hits"  class="${cls.next()}">
+				<?python
+					import urlparse
+					hit.resolve()
+					parsed_url=urlparse.urlparse(hit.url)
+					short_url=urlparse.urlunparse(('','',parsed_url[2],parsed_url[3],parsed_url[4],parsed_url[5]))
+					if len(short_url)>30:
+						short_url=short_url[0:30]+'...'
+				?>
+				<td>${hit.date}</td>
+				<td>${hit.user_login}</td>
+				<td py:if="hit.domain==None">${hit.ip_address}</td>
+				<td py:if="hit.domain!=None" title="${hit.ip_address}">${hit.domain}</td>
+				<td title="${hit.url}">${short_url}</td>
+				<td class="center" title="${hit.status}"><a href="${root}/statistics/errors/show/${hit.error.id}" py:strip="hit.error==None">${hit.status.split(' ')[0]}</a></td>
+				<td title="${hit.session}">${hit.session[0:10]}...</td>
+			</tr>
+		</table>		
+		${pager(page, pages, page_addr)}
+	</body>
+</html>
+

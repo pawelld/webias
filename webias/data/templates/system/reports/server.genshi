@@ -1,0 +1,58 @@
+<!--!
+Copyright 2013 Pawel Daniluk, Bartek Wilczynski
+
+This file is part of WeBIAS.
+
+WeBIAS is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as 
+published by the Free Software Foundation, either version 3 of 
+the License, or (at your option) any later version.
+
+WeBIAS is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public 
+License along with WeBIAS. If not, see 
+<http://www.gnu.org/licenses/>.
+-->
+
+<html xmlns:py="http://genshi.edgewall.org/" encoding="utf-8" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <xi:include href="${base}" />
+	<head>
+		<title>WeBIAS server</title>
+	</head>
+	<body>
+		<h1>WeBIAS server</h1>
+
+		<?python
+			from itertools import cycle
+		?>
+
+		<table class="table" py:with="cls=cycle(('odd','even'))" >
+			<tr>
+				<th>Report</th>
+				<th>Frequency</th>
+                <th>Last</th>
+			</tr>
+
+			<py:def function="freq_link(stat)">
+				<py:for each="val in frequencies">
+                    <py:choose test="settings[stat][0]">
+                        <b py:when="val">${val}</b>
+                        <a py:otherwise="" href="set/${stat}/${val}">${val}</a>
+                    </py:choose>
+                </py:for>
+
+			</py:def>
+
+			<tr py:for="type in sorted(types_dict, key = lambda x: types_dict[x])" class="${cls.next()}">
+				<td>${types_dict[type]}</td>
+				<td class="center">${freq_link(type)}</td>
+                <td><py:if test="settings[type][1] is not None">${settings[type][1]}</py:if></td>
+			</tr>
+		</table>
+	</body>
+</html>
+

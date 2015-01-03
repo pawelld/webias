@@ -1,0 +1,74 @@
+<!--!
+Copyright 2013 Pawel Daniluk, Bartek Wilczynski
+
+This file is part of WeBIAS.
+
+WeBIAS is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as 
+published by the Free Software Foundation, either version 3 of 
+the License, or (at your option) any later version.
+
+WeBIAS is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public 
+License along with WeBIAS. If not, see 
+<http://www.gnu.org/licenses/>.
+-->
+
+<html xmlns:py="http://genshi.edgewall.org/" encoding="utf-8"
+xmlns:xi="http://www.w3.org/2001/XInclude" py:strip="">
+	<py:match path="head" once="true">
+		<head py:attrs="select('@*')">
+			<title py:with="title = list(select('title/text()'))">
+				<py:choose>
+					<py:when test="title">${title}</py:when>
+					<py:otherwise>
+						<py:if test="defined('app')">${app}</py:if>
+					</py:otherwise>
+				</py:choose>
+			</title>
+			${select('*[local-name()!="title"]')}
+		</head>
+	</py:match>
+
+	<?python
+		header_present=False
+		content_present=False
+	?>
+
+	<py:match path="header">
+		<h1>
+	    	${select("*|text()")}
+		</h1>
+		<?python
+			header_present=True
+		?>
+	</py:match>
+
+	<py:match path="content">
+		<div id="center">
+	    	${select("*|text()")}
+		</div>
+		<?python
+			content_present=True
+		?>
+	</py:match>
+
+	<py:match path="body" once="true">
+		<body py:attrs="select('@*')">
+			<h1 py:if="not header_present and defined('app') and (not defined('nobase') or not nobase)">
+      			Message from ${app} on ${server} server.
+			</h1>
+			${select('*|text()')}
+			<div id="center" py:if="not content_present">
+				${Markup(content)}
+			</div>
+		</body>
+	</py:match>
+
+    <xi:include href="${base}" />
+</html>
+

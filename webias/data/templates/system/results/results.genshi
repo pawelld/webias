@@ -1,0 +1,78 @@
+<!--!
+Copyright 2013 Pawel Daniluk, Bartek Wilczynski
+
+This file is part of WeBIAS.
+
+WeBIAS is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as 
+published by the Free Software Foundation, either version 3 of 
+the License, or (at your option) any later version.
+
+WeBIAS is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public 
+License along with WeBIAS. If not, see 
+<http://www.gnu.org/licenses/>.
+-->
+
+<html xmlns:py="http://genshi.edgewall.org/" encoding="utf-8" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <xi:include href="${base}" />
+	<head>
+		<title>${app}</title>
+	</head>
+	<body>
+		<h1>Results for BIAS request ${uuid}</h1>
+
+		<div py:if="login!=None and login==owner">
+		<div class="tag">
+			<script>
+				$(document).ready(function(){
+					h=$(".tag").height()
+					$(".tag").height(h)
+					$("#tag_show").click(function(){
+						$(".tag_content").slideUp('normal')	
+						$(".tag_form").slideDown('normal')	
+					});
+				});
+			</script>
+
+			<div py:def="star()" class="tag_star">
+				<a py:if="starred" href="${root}/user/requests/unstar/${uuid}"><img src="${media}/star_yellow.png"/></a>
+				<a py:if="not starred" href="${root}/user/requests/star/${uuid}"><img src="${media}/star_grey.png"/></a>
+			</div>
+
+			<py:if test="tag!=None">
+				<div class="tag_content">
+					${star()}
+					Tag: ${tag}
+					<button id="tag_show" class="right">Edit tag</button>
+				</div>
+			</py:if>
+			<py:if test="tag==None">
+				<div class="tag_content center">
+					${star()}
+					<div class="tag_center_fix">
+					<button id="tag_show">Add tag</button>
+				</div>
+				</div>
+			</py:if>
+
+			<div class="tag_form" style="display:none">
+					${star()}
+				<form name="tag" action="${root}/user/requests/tag/${uuid}" method="post">
+					Tag: <input name="tag" value="${tag}"/>
+					<button class="right">Save</button>
+				</form>
+			</div>
+		</div>
+		</div>
+
+		<xi:include href="${param_table}"/>
+		<br/>
+		<xi:include py:if="result!=None" href="${result_table}"/>
+	</body>
+</html>
+
