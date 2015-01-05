@@ -50,7 +50,7 @@ xmlns:xi="http://www.w3.org/2001/XInclude">
 	  <form name="BIAS form" enctype="multipart/form-data" action="${root}/${app}/submit" method="post"> <div class="form">
 		<?python
 			import genshi.template.eval 
-			import field
+			import webias.field
 			def find_func(suffix, cl):
 				res=value_of('field_'+cl.__name__+suffix)
 

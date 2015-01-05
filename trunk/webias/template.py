@@ -56,7 +56,7 @@ class TemplateProcessor:
                 return res
 
     def base_filename(self):
-        return template_filename('system/base.genshi')
+        return self.template_filename('system/base.genshi')
 
     def email(self,addr,sbj,body,attachments=[]):
         import smtplib,os

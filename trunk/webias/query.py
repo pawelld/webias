@@ -23,7 +23,6 @@ from genshi.template import NewTextTemplate
 
 class XMLTree():
     def __init__(self, xml_string):
-        print xml_string
         self.tree=objectify.make_instance(xml_string, p=objectify.DOM)
 
         for e in objectify.walk_xo(self.tree):
