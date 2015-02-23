@@ -24,7 +24,6 @@
 				/* most browsers' normal font is too large */
 body {
    font-family:     Verdana, Arial, Helvetica, sans-serif;
-   font-size:       90%;	/* Allow IE/Win to resize the document */
    color:           black;
    background:      #F0F0F0;
    margin:          0;

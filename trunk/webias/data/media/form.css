@@ -97,11 +97,6 @@ div.varelement {
 	position: relative;
 }
 
-
-div.varelement button {
-	margin: 8px 8px;
-}
-
 div.section {
     width: 100%;
     background: #6666FF;
@@ -190,6 +185,11 @@ div.login div.submit button {
 	width: auto;
 }
 
+button.add {
+    float: right;
+    margin: 6px 0
+}
+
 button.remove {
-	position: absolute;
+    position: absolute;
 }

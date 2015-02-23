@@ -89,7 +89,6 @@ function fixRemove(c) {
 		pos=el;
 	}
 
-	c.find("button.add").each(positionAdd)
 	b.fadeIn(100);
 	b.position({of: pos, my:'right middle', at:'right middle', offset:offset});
 }
@@ -103,13 +102,6 @@ function updateAdd(group) {
 	} else {
 		b.removeAttr("disabled")
 	}
-}
-
-
-function positionAdd() {
-	cont=$(this).parent();
-
-	$(this).position({of: cont, my:'right middle', at:'right middle', offset:'-8 0'});
 }
 
 function removeElement(event) {
