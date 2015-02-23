@@ -25,7 +25,8 @@ from . import *
 from ... import config
 
 def is_running(pid):
-    query_res = Popen("squeue -j %d" % pid, shell=True, stdout=PIPE, stderr=PIPE)
+    squeue = config.get_default('Scheduler', 'squeue', 'squeue')
+    query_res = Popen("%s -j %d" % (squeue, pid), shell=True, stdout=PIPE, stderr=PIPE)
     if re.match("slurm_load_jobs error: Invalid job id specified", str(query_res.stderr.read())):
         return False
     for x in query_res.stdout.readlines():
@@ -50,9 +51,13 @@ def queue_run(JOB_DIR):
     fh.write('%s %s %s %s' % (config.runner, get_cmdfile(), get_errfile(), get_resfile()))
     fh.close()
 
-    cmd = 'sbatch -D %s %s' % (JOB_DIR, command_qsub)
+    sbatch = config.get_default('Scheduler', 'sbatch', 'sbatch')
+    cmd = '%s -D %s %s' % (sbatch, JOB_DIR, command_qsub)
 
-    out = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE).stdout.read()
+    proc = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+
+    out = proc.stdout.read()
+    err = proc.stderr.read()
     pid = out.strip().split(" ")[-1]
 
     return int(pid)
