@@ -23,14 +23,14 @@ import sqlalchemy
 import template
 import auth
 
-def staticredirect(section):
-    if cherrypy.response.status == 404:
+def staticredirect(section, redirect_section, *args, **kwargs):
+    if cherrypy.lib.static.staticdir(section, *args, **kwargs):
+        return True
+    else:
         path = cherrypy.request.path_info
-        oldsection = cherrypy.request.config['tools.staticdir.section']
+        raise cherrypy.InternalRedirect(path.replace(section, redirect_section, 1))
 
-        raise cherrypy.InternalRedirect(path.replace(oldsection, section, 1))
-
-cherrypy.tools.staticredirect = cherrypy.Tool('before_finalize', staticredirect)
+cherrypy.tools.staticredirect = cherrypy._cptools.HandlerTool(staticredirect)
 
 class expando(object):
     def __init__(self, **kwargs):

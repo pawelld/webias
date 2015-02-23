@@ -288,11 +288,12 @@ def main():
     }
 
     mediaconf={
-        'tools.staticdir.on': True,
+        # 'tools.staticdir.on': True,
         'tools.protect.on': False,
         'tools.staticredirect.on': True,
-        'tools.staticredirect.section': '/media-base',
-        'tools.staticdir.dir': os.path.join(config.server_dir, 'media')
+        'tools.staticredirect.section': '/media',
+        'tools.staticredirect.redirect_section': '/media-base',
+        'tools.staticredirect.dir': os.path.join(config.server_dir, 'media')
     }
 
     mediabaseconf={
