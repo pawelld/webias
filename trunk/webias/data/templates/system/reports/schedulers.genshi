@@ -32,7 +32,7 @@ License along with WeBIAS. If not, see
 
 		<table class="table" py:with="cls=cycle(('odd','even'))" >
 			<tr>
-				<th>schedlication</th>
+				<th>Scheduler</th>
 				<th>Status</th>
 				<th py:for="header in types_dict">${types_dict[header]}</th>
 			</tr>
