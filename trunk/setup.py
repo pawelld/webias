@@ -9,7 +9,7 @@
 
 import os
 import os.path
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 setup(name='WeBIAS',
@@ -18,11 +18,19 @@ setup(name='WeBIAS',
       author='Pawel Daniluk',
       author_email='pawel@bioexploratorium.pl',
       url='http://webias.googlecode.com',
-      packages=['webias', 'webias.scheduler'],
+      packages=find_packages(),
       entry_points={'console_scripts': [
           'webiasd = webias:main',
           'webiasschedd = webias.scheduler:main',
           'webias-createdir = webias.console:create_dir'
       ]},
-      include_package_data = True
+      install_requires = [
+          'CherryPy >= 3.6',
+          'Genshi >= 0.7',
+          'SQLAlchemy >= 0.9',
+          'MySQL-python >= 1.2.5',
+          'WebHelpers >= 1.3',
+          'importlib >= 1'
+      ],
+      include_package_data = True,
       )
