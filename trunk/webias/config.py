@@ -41,6 +41,14 @@ class Config(ConfigParser.SafeConfigParser):
 
         sys.path.append(self.server_dir + "/modules")
 
+    def get_default(self, section, option, default):
+        import ConfigParser
+
+        try:
+            return self.get(section, option)
+        except ConfigParser.NoOptionError:
+            return default
+
     def rename_section(self, section_from, section_to):
         items = self.items(section_from)
         self.add_section(section_to)
