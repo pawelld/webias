@@ -68,7 +68,7 @@ class SATool(cherrypy.Tool):
 
     def _setup(self):
         cherrypy.Tool._setup(self)
-        cherrypy.request.hooks.attach('on_end_resource', self.commit_transaction, priority=80)
+        cherrypy.request.hooks.attach('on_end_request', self.commit_transaction, priority=80)
 
     def bind_session(self):
         cherrypy.engine.publish('bind', self.session)
@@ -422,6 +422,10 @@ class Request(Base):
         except (ValueError,sqlalchemy.orm.exc.NoResultFound):
             raise cherrypy.HTTPError(400, "Please provide a valid UUID.")
 
+    @staticmethod
+    def get_allowed_requests(session, user, modes):
+        apps = [app.id for app in Application.get_allowed_apps(session, user, modes)]
+        return session.query(Request).filter(Request.app_id.in_(apps))
 class Scheduler(Base):
     __tablename__ = 'schedulers'
     __table_args__ = {'mysql_engine':'InnoDB'}
@@ -708,23 +712,26 @@ class ReportSetting(Base):
 
 
 
-    def is_due(self, date):
+    def is_due(self, date, last=None):
         if self.frequency == 'N':
             return False
 
-        if self.last is None:
+        if last is None:
+            last = self.last
+
+        if last is None:
             return True
 
         delay_dict = {'M': 60, 'H': 3600, 'D': 24*3600, 'W': 7*24*3600}
 
         delay = delay_dict[self.frequency]
 
-        delta_since_epoch = (self.last - datetime.datetime(1970, 1, 1))
+        delta_since_epoch = (last - datetime.datetime(1970, 1, 1))
         last_ts = delta_since_epoch.days * 24 * 3600 + delta_since_epoch.seconds
+        delta_since_epoch = (datetime.datetime.fromtimestamp(date) - datetime.datetime(1970, 1, 1))
+        date_ts = delta_since_epoch.days * 24 * 3600 + delta_since_epoch.seconds
 
-        return True
-
-        return int(last_ts)/delay < int(date)/delay
+        return int(last_ts)/delay < int(date_ts)/delay
 
 
     def generate(self, session, date):
@@ -844,7 +851,7 @@ class ReportSettingServ(ReportSetting):
         if self.report_type == 'HEARTBEAT':
             q = session.query(sqlalchemy.func.max(ReportSetting.last_nonempty)).with_parent(self.user)
 
-            if self.is_due(q.one()[0]):
+            if self.is_due(time.time(), q.one()[0]):
                 return ['OK']
 
             return []
