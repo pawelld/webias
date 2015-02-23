@@ -58,8 +58,8 @@ License along with WeBIAS. If not, see
 				<td class="right">${schd_link('FAILED')}</td>
 				<!--				<td><a py:if="not app.enabled" href="delete/${app.id}">Delete</a></td>-->
 				<td>
-					<a  py:if="admin_allowed[sched.id]" href="log/${sched.id}">Log</a>
-					<a  py:if="admin_allowed[sched.id]" href="locks/${sched.id}">Locks</a>
+					<a  py:if="admin_allowed[sched.id]" href="log/${sched.id}/">Log</a>
+					<a  py:if="admin_allowed[sched.id]" href="locks/${sched.id}/">Locks</a>
 				</td>
 			</tr>
 		</table>		
