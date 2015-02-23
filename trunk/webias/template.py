@@ -129,12 +129,12 @@ class TemplateProcessor:
             tmplt=self.templateLoader.load(file, cls=NewTextTemplate)
 
         try:
-            args.mailto=webhelpers.html.tools.mail_to(config.get('Mail', 'admin_email'), config.get('Mail', 'admin_name'), encode="hex")
+            args.mailto=webhelpers.html.tools.mail_to(config.get('Mail', 'admin_email'), unicode(config.get('Mail', 'admin_name'),"UTF-8"), encode="hex")
         except:
             pass
 
         try:
-            args.e_mail=config.E_MAIL
+            args.e_mail=config.get('Mail', 'admin_email')
         except:
             pass
 
@@ -168,7 +168,10 @@ class TemplateProcessor:
         except:
             pass
         else:
-            args.navigation_bar = util.get_WeBIAS().navigation_bar()
+            if tmp is not None:
+                args.navigation_bar = util.get_WeBIAS().navigation_bar()
+            else:
+                args.navigation_bar = []
 
         args.base = self.base_filename()
 
@@ -176,7 +179,8 @@ class TemplateProcessor:
         args.login=auth.get_login()
 
         stream = tmplt.generate(**args.__dict__)
-        return stream.render(type)
+
+        return stream.render(type, encoding='UTF-8')
 
     def processTemplatePaged(self,file, page, attr, args):
         count=len(args.get(attr))
