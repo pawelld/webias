@@ -121,7 +121,7 @@ cherrypy.tools.error_recorder = cherrypy.Tool('after_error_response', error_reco
 
 class DBLogPlugin(cherrypy.process.plugins.SimplePlugin):
     def __init__(self, bus, sched_id = None):
-        self.engine= sqlalchemy.create_engine(config.get('Database', 'db_url'), echo=False)
+        self.engine= sqlalchemy.create_engine(config.get('Database', 'db_url'), echo=False, pool_recycle=1800)
         self.engine.connect();
         self.Session=sqlalchemy.orm.sessionmaker(bind=self.engine)
 

@@ -108,7 +108,7 @@ cherrypy.tools.protect= cherrypy.Tool('before_handler', protect)
 
 class CleanupUsers(cherrypy.process.plugins.Monitor):
     def __init__(self, bus, frequency=300):
-        self.engine= sqlalchemy.create_engine(config.db_url, echo=False)
+        self.engine= sqlalchemy.create_engine(config.db_url, echo=False, pool_recycle=1800)
         self.engine.connect();
         self.Session=sqlalchemy.orm.sessionmaker(bind=self.engine)
         cherrypy.process.plugins.Monitor.__init__(self,bus,self.run,frequency)
@@ -321,7 +321,7 @@ class NewUser():
 
         old_user=data.User.get_by_email(session, email)
 
-        if old_user != None and old_user.status != '':
+        if old_user != None and old_user.status != '' and old_user.status is not None:
             cherrypy.session['message']="User with this e-mail already exists."
             raise cherrypy.InternalRedirect("/login/newuser/")
 

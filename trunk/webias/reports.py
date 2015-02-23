@@ -188,7 +188,7 @@ class Reports(FeatureList):
 
 class ReportSender(cherrypy.process.plugins.Monitor):
     def __init__(self, bus, frequency=60):
-        self.engine= sqlalchemy.create_engine(config.db_url, echo=False)
+        self.engine= sqlalchemy.create_engine(config.db_url, echo=False, pool_recycle=1800)
         self.engine.connect();
         self.Session=sqlalchemy.orm.sessionmaker(bind=self.engine)
         cherrypy.process.plugins.Monitor.__init__(self,bus,self.run,frequency)
