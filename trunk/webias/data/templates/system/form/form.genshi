@@ -50,7 +50,7 @@ xmlns:xi="http://www.w3.org/2001/XInclude">
 	  <form name="BIAS form" enctype="multipart/form-data" action="${root}/${app}/submit" method="post"> <div class="form">
 		<?python
 			import genshi.template.eval 
-			import webias.field
+			import webias.field as field
 			def find_func(suffix, cl):
 				res=value_of('field_'+cl.__name__+suffix)
 
@@ -118,7 +118,7 @@ xmlns:xi="http://www.w3.org/2001/XInclude">
 		<a py:def="help(el)" py:if="hasattr(el,'help')" href="${el.app().setup.help_url.PCDATA}${el.help}" target="_blank"><img src="${media}/help.png"/></a>
 
 		<div py:def="field_Field_label(el)" class="label">
-			${str(el.name)}:${opt(el)}${help(el)}
+			${el.name}:${opt(el)}${help(el)}
 		</div>
 		<div py:def="field_Field_component(el)" class="component">
         	<input name="${el.getFormName()}" length="10" value="${el.getDefault(query)}" py:attrs="{'title': getattr(el, 'tooltip',None)}"/>
@@ -194,7 +194,6 @@ xmlns:xi="http://www.w3.org/2001/XInclude">
 					$(".${id}").data("count",${count});
 					$(".${id}").data("max",${el.getMax()});
 					$(".${id}").data("name",'${name}');
-					$(".${id} .add").each(positionAdd);
 					$(".${id}-element").each(function() {
 						fixRemove($(this));
 					});
@@ -222,9 +221,12 @@ xmlns:xi="http://www.w3.org/2001/XInclude">
 			</div>
 		</div>
 
-		<xi:include href="${name}" py:for="name in parameters.get_templates()" />
+        <?python
+            import cherrypy
+        ?>
 
-  
+		<xi:include href="${name}" py:for="name in map(cherrypy.engine.templateProcessor.template_filename, parameters.get_templates())" />
+
 		${set_of_elements(parameters.children())}
 
 		<div class="element submit">
@@ -255,7 +257,7 @@ xmlns:xi="http://www.w3.org/2001/XInclude">
 						$("#response .container").empty();
 						$("#response").slideDown();
 
-						form.ajaxSubmit({target: '#response .container', success: success, error: error});
+						form.ajaxSubmit({target: '#response .container', success: success /* , error: error*/});
 						form.attr('action', "${root}/${app}/submit")
 					})
 				})
@@ -273,9 +275,6 @@ xmlns:xi="http://www.w3.org/2001/XInclude">
 			$("form [name]").each(function(){
 				storeName($(this));
 			})
-<!--!			$("form [name]").click(function(event){
-				alert(getName($(event.target)));
-			})-->
 		})
 	</script>
 </html>
