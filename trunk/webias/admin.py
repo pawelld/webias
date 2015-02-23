@@ -176,9 +176,20 @@ class Requests:
     @persistent
     def index(self, p=1, **kwargs):
         session=cherrypy.request.db
-        q=session.query(data.Request)
+        login=auth.get_login()
+        user=data.User.get_by_login(session,login)
+        q=data.Request.get_allowed_requests(session, user, ('VIEW', 'ADMIN'))
 
-        return render_query_paged('system/admin/requests.genshi', q, int(p), 'requests', config.root+"/admin/requests/", kwargs)
+        apps=data.Application.get_allowed_apps(session, user, ('VIEW', 'ADMIN'))
+
+        view_allowed={}
+        admin_allowed={}
+
+        for app in apps:
+            admin_allowed[app.id] = auth.ForceLogin.match_acl(app.get_acl('ADMIN'), login)
+            view_allowed[app.id] = auth.ForceLogin.match_acl(app.get_acl('VIEW'), login)
+
+        return render_query_paged('system/admin/requests.genshi', q, int(p), 'requests', config.root+"/admin/requests/", kwargs, view_allowed=view_allowed, admin_allowed=admin_allowed)
 
 
     @cherrypy.expose

@@ -53,12 +53,16 @@ License along with WeBIAS. If not, see
 				<td>${req.sched_id}</td>
 				<td>${req.status}</td>
 				<td>
-					<a py:if="req.status == 'FINISHED'" href="${root}/${req.app_id}/result/${req.uuid}">Results</a>
-					<a py:if="req.status != 'FINISHED'" href="${root}/${req.app_id}/params/${req.uuid}">Parameters</a>
+                    <py:if test="view_allowed[req.app_id]">
+                        <a py:if="req.status == 'FINISHED'" href="${root}/${req.app_id}/result/${req.uuid}">Results</a>
+                        <a py:if="req.status != 'FINISHED'" href="${root}/${req.app_id}/params/${req.uuid}">Parameters</a>
+                    </py:if>
 				</td>
 				<td>
-					<a href="${root}/admin/requests/delete/${req.uuid}">Delete</a> 
-					<a py:if="req.status in ('FINISHED','FAILED')" href="${root}/admin/requests/rerun/${req.uuid}">Rerun</a>
+                    <py:if test="admin_allowed[req.app_id]">
+                        <a href="${root}/admin/requests/delete/${req.uuid}">Delete</a> 
+                        <a py:if="req.status in ('FINISHED','FAILED')" href="${root}/admin/requests/rerun/${req.uuid}">Rerun</a>
+                    </py:if>
 				</td>
 			</tr>
 		</table>		
