@@ -51,7 +51,7 @@ def get_dbsched(session, sched_id):
 class LockPlugin(cherrypy.process.plugins.SimplePlugin):
     def __init__(self, bus, forcelock=False):
         self.forcelock = forcelock
-        self.engine = sqlalchemy.create_engine(config.db_url, echo=False)
+        self.engine = sqlalchemy.create_engine(config.db_url, echo=False, pool_recycle=1800)
         self.engine.connect();
         self.Session = sqlalchemy.orm.sessionmaker(bind=self.engine)
         cherrypy.process.plugins.SimplePlugin.__init__(self, bus)
@@ -262,7 +262,7 @@ class SchedulerPlugin(cherrypy.process.plugins.Monitor):
             run.status = 'FINISHED'
             req.status = 'FINISHED'
             run.result = open(resfile, 'r').read()
-            template = 'system/email/finished.genshi'
+            template_file = 'system/email/finished.genshi'
 
             files = sum([glob.glob(p) for p in ['%s/%s'%(job_dir, p) for p in req.app.output_files.split()]],[])
 
@@ -275,15 +275,15 @@ class SchedulerPlugin(cherrypy.process.plugins.Monitor):
         else:
             run.status = 'FAILED'
             req.status = 'FAILED'
-            template = 'system/email/failed.genshi'
+            template_file = 'system/email/failed.genshi'
             cherrypy.engine.log("Failed to collect run %d, for request %d." % (run.id, req.id))
 
         session.commit()
 
         if req.user.id > 0:
-            args = TemplateArgs(req.app)
+            args = template.TemplateArgs(req.app)
             args.uuid = req.uuid
-            self.templateProcessor.email_message(req.user.e_mail, template, app=req.app, uuid=req.uuid)
+            self.templateProcessor.email_message(req.user.e_mail, template_file, app=req.app, uuid=req.uuid)
 
     def ping(self, session):
         dbsched = session.query(data.Scheduler).get(config.sched_id)
@@ -354,7 +354,7 @@ def main():
 
     SchedulerPlugin(cherrypy.engine, importlib.import_module('.interfaces.' + sched_type, __name__)).subscribe()
 
-    PIDFile(cherrypy.engine, config.get('Server', 'pid_file')).subscribe()
+    PIDFile(cherrypy.engine, config.get('Scheduler', 'pid_file')).subscribe()
     cherrypy.engine.signal_handler.subscribe()
     statistics.DBLogPlugin(cherrypy.engine, sched_id=config.sched_id).subscribe()
 
