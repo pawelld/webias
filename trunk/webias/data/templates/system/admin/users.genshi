@@ -46,7 +46,7 @@ License along with WeBIAS. If not, see
 			</tr>
 			<tr py:for="usr in users"  class="${cls.next()}">
 				<py:if test="usr.id==-1"> 
-					<td colspan="5"><em>Anonymous</em></td>
+					<td colspan="6"><em>Anonymous</em></td>
 				</py:if>
 				<py:if test="usr.id>=0">
 					<td>${usr.date}</td>
