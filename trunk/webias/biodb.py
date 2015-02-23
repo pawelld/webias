@@ -22,12 +22,13 @@ import os.path
 
 import config
 
-cachedir=config.server_dir + "/dbcache/biodb/"
+def get_cachedir():
+    return os.path.join(config.server_dir, "dbcache/biodb/")
 
 
 def addDBDir(handler):
 	def wrap_handler(self, *args, **kwargs):
-		return cachedir+self.dbname+'/'+handler(self, *args, **kwargs)
+		return get_cachedir()+self.dbname+'/'+handler(self, *args, **kwargs)
 
 	return wrap_handler
 
@@ -101,7 +102,7 @@ class SCOPHandler(DBHandler):
 
     def __init__(self):
         self.dbname='SCOP'
-        self.URLTemplate='http://astral.berkeley.edu/pdbstyle.cgi?id=%s'
+        self.URLTemplate='http://scop.berkeley.edu/astral/pdbstyle/ver=2.04&id=%s&output=file'
 
     def isIDValid(self, val):
         if len(val)!=7:
