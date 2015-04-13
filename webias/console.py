@@ -60,6 +60,8 @@ def create_dir():
     put_file('conf/config.ini', 'data/conf/config.ini.sample', opt_dict)
     put_file('runner.py', 'data/runner.py')
 
+    os.chmod('runner.py', 0o755)
+
     if options.examples:
         example_files = [('apps/groups.xml', 'data/examples/apps/groups.xml'),
                          ('apps/server_map.xml', 'data/examples/apps/server_map.xml'),
@@ -84,3 +86,4 @@ def create_dir():
         for (dst, src) in verbatim_files:
             put_file(dst, src)
 
+        os.chmod('examples/test.py', 0o755)
