@@ -1,6 +1,6 @@
 <bias>
 
-<application id="vargroups" name="VarGroups" info="VarGroup example">
+<application id="Vargroups" name="VarGroups" info="VarGroup example">
     <description>
 		This an example how groups of parameters can be nested.
     </description>

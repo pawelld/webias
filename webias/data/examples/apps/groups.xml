@@ -1,6 +1,6 @@
 <bias>
 
-<application id="groups" name="Groups" info="Group example">
+<application id="Groups" name="Groups" info="Group example">
     <description>
 		This an example how groups of parameters can be nested.
     </description>

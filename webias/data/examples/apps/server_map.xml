@@ -7,8 +7,8 @@
 		<a href="/WeBIASDemo/page/example">Sample static page.</a>
 	</description>
 	<appgroupentry appid="Test"></appgroupentry>
-	<appgroupentry appid="groups"></appgroupentry>
-	<appgroupentry appid="vargroups"></appgroupentry>
+	<appgroupentry appid="Groups"></appgroupentry>
+	<appgroupentry appid="Vargroups"></appgroupentry>
 </appgroup>
 
 </bias>
