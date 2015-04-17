@@ -19,6 +19,8 @@
 
 import os
 import pkg_resources
+import zipfile
+import webias
 
 def put_file(dest, src, opt_dict=None):
     fh = open(dest, 'w')
@@ -27,6 +29,13 @@ def put_file(dest, src, opt_dict=None):
     else:
         fh.write(pkg_resources.resource_string('webias', src))
     fh.close()
+
+def zipdir(path, arcpath, zip):
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            fsysname = os.path.join(root, file)
+            arcname = os.path.join(arcpath, os.path.relpath(fsysname, path))
+            zip.write(fsysname, arcname)
 
 def create_dir():
     from optparse import OptionParser
@@ -61,6 +70,11 @@ def create_dir():
     put_file('runner.py', 'data/runner.py')
 
     os.chmod('runner.py', 0o755)
+
+    zipf = zipfile.ZipFile('media/source.zip', 'w')
+    zipdir(webias.__path__[0], 'webias', zipf)
+    zipf.close()
+
 
     if options.examples:
         example_files = [('apps/groups.xml', 'data/examples/apps/groups.xml'),
