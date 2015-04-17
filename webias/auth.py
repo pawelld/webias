@@ -91,10 +91,14 @@ def protect(allowed):
 
     if cherrypy.request.method=='POST':
         handler=cherrypy.request.handler
-        new_handler=cherrypy._cpdispatch.PageHandler(handler.callable, *handler.args, **handler.kwargs)
+#        new_handler=cherrypy._cpdispatch.PageHandler(handler.callable, *handler.args, **handler.kwargs)
+
+        args = handler.args
+        kwargs = handler.kwargs
 
         def action():
-            return new_handler.__call__()
+#            return new_handler.__call__()
+            return handler.callable(*args, **kwargs)
         fl=ForceLogin(acl=allowed, action=action, noauth=noauth)
     else:
         fl=ForceLogin(acl=allowed, goto=cherrypy.url(qs=cherrypy.request.query_string), noauth=noauth)

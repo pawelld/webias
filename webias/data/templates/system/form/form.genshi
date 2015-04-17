@@ -257,7 +257,7 @@ xmlns:xi="http://www.w3.org/2001/XInclude">
 						$("#response .container").empty();
 						$("#response").slideDown();
 
-						form.ajaxSubmit({target: '#response .container', success: success /* , error: error*/});
+						form.ajaxSubmit({target: '#response .container', success: success, error: error});
 						form.attr('action', "${root}/${app}/submit")
 					})
 				})
