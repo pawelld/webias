@@ -40,10 +40,11 @@ def hit_recorder():
         stat_num=500
     else:
         status=cherrypy.response.status
-        try:
-            stat_num = int(status)
-        except:
-            stat_num=int(status.split(' ')[0])
+        stat_num=int(status.split(' ')[0])
+        # try:
+        #     stat_num = int(status)
+        # except:
+        #     stat_num=int(status.split(' ')[0])
 
     session=cherrypy.request.db
     login=auth.get_login()
