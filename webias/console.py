@@ -37,6 +37,23 @@ def zipdir(path, arcpath, zip):
             arcname = os.path.join(arcpath, os.path.relpath(fsysname, path))
             zip.write(fsysname, arcname)
 
+def create_source_zip(dir):
+    zipf = zipfile.ZipFile(os.path.join(dir, 'media/source.zip'), 'w')
+    zipdir(webias.__path__[0], 'webias', zipf)
+    zipf.close()
+
+def create_source():
+    from optparse import OptionParser
+    parser = OptionParser(usage="usage: %prog [options] server_dir")
+    (options, args)=parser.parse_args()
+
+    if len(args) != 1:
+        parser.error("incorrect number of arguments")
+
+    server_dir = args[0]
+
+    create_source_zip(server_dir)
+
 def create_dir():
     from optparse import OptionParser
     parser = OptionParser(usage="usage: %prog [options] server_dir")
@@ -71,10 +88,7 @@ def create_dir():
 
     os.chmod('runner.py', 0o755)
 
-    zipf = zipfile.ZipFile('media/source.zip', 'w')
-    zipdir(webias.__path__[0], 'webias', zipf)
-    zipf.close()
-
+    create_source_zip(server_dir)
 
     if options.examples:
         example_files = [('apps/groups.xml', 'data/examples/apps/groups.xml'),

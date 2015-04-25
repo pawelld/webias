@@ -22,7 +22,8 @@ setup(name='WeBIAS',
       entry_points={'console_scripts': [
           'webiasd = webias:main',
           'webiasschedd = webias.scheduler:main',
-          'webias-createdir = webias.console:create_dir'
+          'webias-createdir = webias.console:create_dir',
+          'webias-createsource= webias.console:create_source'
       ]},
       install_requires = [
           'CherryPy >= 3.6',
