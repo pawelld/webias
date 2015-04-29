@@ -13,11 +13,12 @@ from setuptools import setup, find_packages
 
 
 setup(name='WeBIAS',
-      version='0.x',
-      description='',
+      version='1.0.0',
       author='Pawel Daniluk',
       author_email='pawel@bioexploratorium.pl',
-      url='http://webias.googlecode.com',
+      description = "WeBIAS is a web server for publishing services. A service is a standalone command line program, which has to be supplied with certain parameters, and its output should be returned. Computations may require significant resources and time, and may have to be scheduled for later execution. Users are informed when their requests are finished and can peruse results at their convenience.",
+      license = "AGPL",
+      url='http://bioinfo.imdik.pan.pl/webias',
       packages=find_packages(),
       entry_points={'console_scripts': [
           'webiasd = webias:main',
