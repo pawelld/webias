@@ -88,7 +88,7 @@ def create_dir():
 
     os.chmod('runner.py', 0o755)
 
-    create_source_zip(server_dir)
+    create_source_zip('.')
 
     if options.examples:
         example_files = [('apps/groups.xml', 'data/examples/apps/groups.xml'),
@@ -115,3 +115,7 @@ def create_dir():
             put_file(dst, src)
 
         os.chmod('examples/test.py', 0o755)
+
+
+
+
