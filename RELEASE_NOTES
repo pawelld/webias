@@ -1,0 +1,10 @@
+1.0.1:
+
+- Improved handling of spaces in names of uploaded files.
+- Fixed an error in webias-createdir
+- Added reference to wiki page in README file.
+
+
+1.0.0:
+
+- Initial release
