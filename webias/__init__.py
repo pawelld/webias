@@ -122,7 +122,7 @@ class WeBIAS:
     def navigation_bar(self):
 
         # ACLs given below determine link rendering only.
-        full_list = [('/', 'Application list', ['any']),
+        full_list = [('', 'Application list', ['any']),
                      ('/user/requests/', 'My requests', ['user']),
                      ('/admin/', 'Administration panel', self.admin._acl),
                      ('/statistics/', 'Statistics', self.statistics._acl),
@@ -326,7 +326,7 @@ def main():
         server1.socket_port=config.getint('Server', 'server_ssl_port')
         server1._socket_host=config.get('Server', 'server_host')
         server1.thread_pool=100
-        server1.ssl_module = 'pyopenssl'
+        server1.ssl_module = 'builtin'
         server1.ssl_certificate = config.get('Server', 'ssl_cert')
         server1.ssl_private_key = config.get('Server', 'ssl_key')
         server1.ssl_certificate_chain = config.get('Server', 'ssl_cert_chain')
