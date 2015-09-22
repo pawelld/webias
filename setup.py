@@ -27,7 +27,7 @@ setup(name='WeBIAS',
           'webias-createsource= webias.console:create_source'
       ]},
       install_requires = [
-          'CherryPy >= 3.6',
+          'CherryPy >= 3.8',
           'Genshi >= 0.7',
           'SQLAlchemy >= 0.9',
           'MySQL-python >= 1.2.5',
