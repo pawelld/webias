@@ -1,4 +1,16 @@
+#
+# This is a sample configuration file for a WeBIAS server.
+# In order to launch WeBIAS all fields commented with a single # have to be uncommented and filled.
+# 
+# Fields commented with double ## are optional.
+#
+
+
 [Database]
+#
+# Credentials for the MySQL server
+#
+
 #db_login = ***
 #db_password = ***
 #db_host = localhost
@@ -6,15 +18,31 @@
 db_url = mysql://%%(db_login)s:%%(db_password)s@%%(db_host)s/%%(db_name)s
 
 [Mail]
+
+#
+# Credentials for the SMTP server
+#
+
 #smtp_login = ***
 #smtp_password = ***
 #smtp_host = smtp.mydomain.com
 #smtp_mail_from = webias@mydomain.com
 
+#
+# Name and address of the site administrator
+#
+
 #admin_name = Joe Admin
 #admin_email = joe@mydomain.com
 
 [Server]
+
+#
+# Configuration of the WeBIAS server (webiasd)
+#
+# Trailing '/' are stripped from root.
+#
+
 #name = WeBIAS site
 #root = /
 #server_url = http://webias.mydomain.com/%%(root)s
@@ -27,6 +55,8 @@ server_port = 8080
 ## ssl_cert = /var/WeBIAS/biasdev/cert/host.crt
 ## ssl_key = /var/WeBIAS/biasdev/cert/host.key
 ## ssl_cert_chain = ""
+
+
 #pid_file = /tmp/WeBIAS.pid
 #access_log = /var/log/WeBIAS/access.log
 #error_log = /var/log/WeBIAS/error.log
@@ -34,6 +64,12 @@ server_port = 8080
 mime_types = {'png':'image/png','html':'text/html','htm':'text/html' ,'txt':'text/plain'}
 
 [Scheduler]
+
+#
+# Configuration of a default scheduler (webiasschedd)
+#
+
+
 # allowed types are torque, slurm, batch
 #type = slurm
 #sched_id = Default
@@ -42,19 +78,21 @@ err_file = BIAS.status
 res_file = BIAS.result
 #work_dir = /var/spool/WeBIAS/
 #runner = %(server_dir)s/runner.py
+#pid_file = /tmp/WeBIASsched-%%(sched_id)s.pid
 
-#Number of tasks that can be processed concurrently (0 = unlimited)
+# Number of tasks that can be processed concurrently (0 = unlimited)
 slots = 0
+# Time interval between polling for new jobs (in seconds).
 sleep_time = 5
 
-#[Scheduler:sched_name]
-#type = batch
-#cmd_file = BIAS.cmd
-#err_file = BIAS.status
-#res_file = BIAS.result
-#work_dir = /var/spool/WeBIAS/
-#runner = %(server_dir)s/runner.py
+##[Scheduler:sched_name]
+##type = batch
+##cmd_file = BIAS.cmd
+##err_file = BIAS.status
+##res_file = BIAS.result
+##work_dir = /var/spool/WeBIAS/
+##runner = %(server_dir)s/runner.py
 
-#Number of tasks that can be processed concurrently (0 = unlimited)
-#slots = 0
-#sleep_time = 5
+##Number of tasks that can be processed concurrently (0 = unlimited)
+##slots = 0
+##sleep_time = 5
