@@ -41,6 +41,12 @@ class Config(ConfigParser.SafeConfigParser):
 
         sys.path.append(self.server_dir + "/modules")
 
+        root = self.get('Server', 'root').rstrip('/')
+
+        self.set('Server', 'root', root)
+
+
+
     def get_default(self, section, option, default):
         import ConfigParser
 
