@@ -32,7 +32,7 @@ import sys, traceback
 try:
     import biofield
 except ImportError:
-    cherrypy.engine.log('Failed to import biofield module. Bioinformatics fields will be disabled')
+    cherrypy.engine.log('Failed to import biofield module. Bioinformatics fields will be disabled. Install BioPython to enable them.')
 
 import auth
 
