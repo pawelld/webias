@@ -32,7 +32,7 @@ class Config(ConfigParser.SafeConfigParser):
 
         missing=[o for o in opts if not self.has_option(section, o)]
 
-        if missing is not []:
+        if not missing == []:
             if len(missing) == 1:
                 cherrypy.engine.log('Option '+missing[0]+' in config section ' + section + ' is not set. '+message)
             else:
@@ -52,7 +52,12 @@ class Config(ConfigParser.SafeConfigParser):
 
         self.server_dir = os.path.abspath(dir)
 
-        self.read(dir + '/conf/config.ini')
+        found = self.read(dir + '/conf/config.ini')
+
+        if found == []:
+            cherrypy.engine.log('Config file '+dir + '/conf/config.ini'+' not found.')
+
+
         cherrypy.engine.autoreload.files.add(dir + '/conf/config.ini')
 
         sys.path.append(self.server_dir + "/modules")
