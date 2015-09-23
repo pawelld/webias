@@ -68,8 +68,6 @@ class TemplateProcessor:
 
         msg=MIMEMultipart()
         msg["To"]      = addr
-        msg["From"]    = config.get('Mail', 'smtp_mail_from')
-        msg["Return-Path"] = config.get('Mail', 'smtp_mail_from')
         msg["Subject"] = sbj
         msg['Date'] = formatdate(localtime=True)
 
@@ -84,6 +82,8 @@ class TemplateProcessor:
             msg.attach(part)
 
         try:
+            msg["From"]    = config.get('Mail', 'smtp_mail_from')
+            msg["Return-Path"] = config.get('Mail', 'smtp_mail_from')
             s=smtplib.SMTP(config.get('Mail', 'smtp_host'))
             try:
                 s.login(config.get('Mail', 'smtp_login'), config.get('Mail', 'smtp_password'))

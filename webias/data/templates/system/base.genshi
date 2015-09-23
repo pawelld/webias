@@ -92,7 +92,7 @@ xmlns:py="http://genshi.edgewall.org/" py:strip="" py:if="not defined('nobase') 
             <!-- ======== Footer ======== -->
 
             <div id="footer">
-				Administered by ${Markup(mailto)}
+				<py:if test="defined('mailto')">Administered by ${Markup(mailto)}</py:if>
 				<div id="small">
 					<br/>
 					Service powered by <a href="http://bioinfo.imdik.pan.pl/webias" target="_blank">WeBIAS</a>. Server <a href="${media}/source.zip">source code</a> is available under <a href="http://www.gnu.org/licenses/agpl-3.0.html" target="_blank">AGPL</a>.

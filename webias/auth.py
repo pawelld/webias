@@ -51,12 +51,13 @@ def https_filter():
 cherrypy.tools.https_filter = cherrypy.Tool('on_start_resource', https_filter)
 
 def make_secure():
-    url = urlparse.urlparse(cherrypy.url(qs=cherrypy.request.query_string))
+    if not util.get_WeBIAS().no_SSL:
+        url = urlparse.urlparse(cherrypy.url(qs=cherrypy.request.query_string))
 
-    if not url[0]=='https':
-        secure_url = urlparse.urlunparse(('https', url[1], url[2], url[3], url[4],url[5]))
-        cherrypy.request.preserve=True
-        raise cherrypy.HTTPRedirect(secure_url)
+        if not url[0]=='https':
+            secure_url = urlparse.urlunparse(('https', url[1], url[2], url[3], url[4],url[5]))
+            cherrypy.request.preserve=True
+            raise cherrypy.HTTPRedirect(secure_url)
 
 cherrypy.tools.secure = cherrypy.Tool('before_handler', make_secure, priority=20)
 

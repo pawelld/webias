@@ -119,6 +119,8 @@ class WeBIAS:
         self.server_map()
         field.objectify_clean()
 
+        self.no_SSL=False
+
     def navigation_bar(self):
 
         # ACLs given below determine link rendering only.
@@ -281,11 +283,20 @@ def main():
         'tools.sessions.on': True,
         'tools.clean_session.on': True,
         'log.screen': False,
-        'log.access_file': config.get('Server', 'access_log'),
-        'log.error_file': config.get('Server', 'error_log'),
         'tools.protect.on': True,
         'tools.protect.allowed': ['any']
     }
+
+    try:
+        conf['log.access_file'] = config.get('Server', 'access_log')
+    except config.NoOptionError:
+        cherrypy.engine.log('Filename of access log for WeBIAS server not set. Logging will be performed only to standard output.')
+
+    try:
+        conf['log.error_file'] = config.get('Server', 'error_log')
+    except config.NoOptionError:
+        cherrypy.engine.log('Filename of error log for WeBIAS server not set. Logging will be performed only to standard output.')
+
 
     mediaconf={
         # 'tools.staticdir.on': True,
@@ -301,7 +312,9 @@ def main():
         'tools.staticdir.dir': os.path.join(pkg_resources.resource_filename('webias', 'data'), 'media')
     }
 
-    cherrypy.tree.mount(WeBIAS(), config.get('Server', 'root'), config={'/': conf, '/media': mediaconf, '/media-base': mediabaseconf})
+    webias = WeBIAS()
+
+    cherrypy.tree.mount(webias, config.get('Server', 'root'), config={'/': conf, '/media': mediaconf, '/media-base': mediabaseconf})
 
     cherrypy.config.update({
         'session_filter.on':True,
@@ -322,15 +335,19 @@ def main():
     else:
         cherrypy.server.unsubscribe()
 
-        server1 = cherrypy._cpserver.Server()
-        server1.socket_port=config.getint('Server', 'server_ssl_port')
-        server1._socket_host=config.get('Server', 'server_host')
-        server1.thread_pool=100
-        server1.ssl_module = 'builtin'
-        server1.ssl_certificate = config.get('Server', 'ssl_cert')
-        server1.ssl_private_key = config.get('Server', 'ssl_key')
-        server1.ssl_certificate_chain = config.get('Server', 'ssl_cert_chain')
-        server1.subscribe()
+        try:
+            server1 = cherrypy._cpserver.Server()
+            server1.socket_port=config.getint('Server', 'server_ssl_port')
+            server1._socket_host=config.get('Server', 'server_host')
+            server1.thread_pool=100
+            server1.ssl_module = 'builtin'
+            server1.ssl_certificate = config.get('Server', 'ssl_cert')
+            server1.ssl_private_key = config.get('Server', 'ssl_key')
+            server1.ssl_certificate_chain = config.get('Server', 'ssl_cert_chain')
+            server1.subscribe()
+        except config.NoOptionError as e:
+            webias.no_SSL = True
+            cherrypy.engine.log('Option '+e.option+' not set and WeBIAS is not acting as a proxy. SSL will be disabled, and all connections will be unencrypted. DO NOT USE THIS CONFIGURATION IN THE PRODUCTION ENVIRONMENT.')
 
         server2 = cherrypy._cpserver.Server()
         server2.socket_port = config.getint('Server', 'server_port')

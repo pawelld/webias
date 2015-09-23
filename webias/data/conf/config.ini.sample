@@ -57,7 +57,7 @@ server_port = 8080
 ## ssl_cert_chain = ""
 
 
-#pid_file = /tmp/WeBIAS.pid
+pid_file = /tmp/WeBIAS-%%(server_host)s:%%(server_port)s.pid
 #access_log = /var/log/WeBIAS/access.log
 #error_log = /var/log/WeBIAS/error.log
 

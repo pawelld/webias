@@ -21,18 +21,34 @@
 import sys
 import ConfigParser
 
-# This hack is required because actual module is substituted for a Config
-# class.
+# This hack is required because Config is substituted for actual module.
 
 import cherrypy
 cherrypy.engine.autoreload.files.add(__file__)
 
 class Config(ConfigParser.SafeConfigParser):
+    def check_options(self, section, opts, message):
+        import cherrypy
+
+        missing=[o for o in opts if not self.has_option(section, o)]
+
+        if missing is not []:
+            if len(missing) == 1:
+                cherrypy.engine.log('Option '+missing[0]+' in config section ' + section + ' is not set. '+message)
+            else:
+                cherrypy.engine.log('Options '+', '.join(missing)+' in config section ' + section + ' are not set. '+message)
+
+            return False
+
+        return True
+
 
     def load_config(self, dir):
         import sys
         import os
         import cherrypy
+        import ConfigParser
+        import socket
 
         self.server_dir = os.path.abspath(dir)
 
@@ -41,10 +57,22 @@ class Config(ConfigParser.SafeConfigParser):
 
         sys.path.append(self.server_dir + "/modules")
 
-        root = self.get('Server', 'root').rstrip('/')
+        try:
+            root = self.get('Server', 'root').rstrip('/')
+        except ConfigParser.NoOptionError:
+            root = ''
+            cherrypy.engine.log('Server root directory not given. Assuming \'/\'.')
 
         self.set('Server', 'root', root)
 
+        self.check_options('Mail', ['admin_name', 'admin_email'], 'Site administrator is not set. No contact information will be displayed in page footer.')
+
+        default_url='http://'+socket.gethostname()+'/'+self.root
+
+        if not self.check_options('Server', ['server_url'], 'Using '+default_url+' instead.'):
+            self.set('Server', 'server_url', default_url)
+
+        self.check_options('Mail', ['smtp_login', 'smtp_password', 'smtp_host', 'server_port'], 'Sending e-mails will SILENTLY fail.')
 
 
     def get_default(self, section, option, default):
@@ -93,5 +121,7 @@ class Config(ConfigParser.SafeConfigParser):
     def runner(self):
         # TODO: Add clever searching for runner
         return self.get('Scheduler', 'runner')
+
+    NoOptionError = ConfigParser.NoOptionError
 
 sys.modules[__name__] = Config()
