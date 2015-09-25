@@ -77,7 +77,7 @@ class Config(ConfigParser.SafeConfigParser):
         if not self.check_options('Server', ['server_url'], 'Using '+default_url+' instead.'):
             self.set('Server', 'server_url', default_url)
 
-        self.check_options('Mail', ['smtp_login', 'smtp_password', 'smtp_host', 'server_port'], 'Sending e-mails will SILENTLY fail.')
+        self.check_options('Mail', ['smtp_login', 'smtp_password', 'smtp_host', 'smtp_mail_from'], 'Sending e-mails will SILENTLY fail.')
 
 
     def get_default(self, section, option, default):
