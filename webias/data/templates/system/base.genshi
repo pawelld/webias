@@ -68,7 +68,7 @@ xmlns:py="http://genshi.edgewall.org/" py:strip="" py:if="not defined('nobase') 
 							$("div#stats").load("${root}/statistics/sessions/stats");
 							setTimeout(load_stats,30*1000);
 						};
-					/*	$(document).ready(load_stats); */
+						$(document).ready(load_stats); 
 					</script>
 
 					<div id="stats">
