@@ -21,6 +21,7 @@
 if __name__=="__main__":
     import sys
     import subprocess
+    import shlex
 
     cmdfile=sys.argv[1]
     errfile=sys.argv[2]
@@ -30,7 +31,7 @@ if __name__=="__main__":
     errfh=open(errfile,'w')
     resfh=open(resfile,'w')
 
-    result = subprocess.call(cmdline, shell=True, stdout=resfh, stderr=errfh)
+    result = subprocess.call(shlex.split(cmdline), shell=False, stdout=resfh, stderr=errfh)
 
     errfh.close()
     resfh.close()
