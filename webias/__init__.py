@@ -125,10 +125,10 @@ class WeBIAS:
 
         # ACLs given below determine link rendering only.
         full_list = [('', 'Application list', ['any']),
-                     ('/user/requests/', 'My requests', ['user']),
-                     ('/admin/', 'Administration panel', self.admin._acl),
-                     ('/statistics/', 'Statistics', self.statistics._acl),
-                     ('/reports/', 'Reports', self.reports._acl)]
+                     ('user/requests/', 'My requests', ['user']),
+                     ('admin/', 'Administration panel', self.admin._acl),
+                     ('statistics/', 'Statistics', self.statistics._acl),
+                     ('reports/', 'Reports', self.reports._acl)]
 
 
         login = auth.get_login()
