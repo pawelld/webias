@@ -78,7 +78,7 @@ err_file = BIAS.status
 res_file = BIAS.result
 #work_dir = /var/spool/WeBIAS/
 #runner = %(server_dir)s/runner.py
-#pid_file = /tmp/WeBIASsched-%%(sched_id)s.pid
+pid_file = /tmp/WeBIASsched-%%(sched_id)s.pid
 
 # Number of tasks that can be processed concurrently (0 = unlimited)
 slots = 0
