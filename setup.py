@@ -13,7 +13,7 @@ from setuptools import setup, find_packages
 
 
 setup(name='WeBIAS',
-      version='1.0.1',
+      version='1.0.2',
       author='Pawel Daniluk',
       author_email='pawel@bioexploratorium.pl',
       description = "WeBIAS is a web server for publishing services. A service is a standalone command line program, which has to be supplied with certain parameters, and its output should be returned. Computations may require significant resources and time, and may have to be scheduled for later execution. Users are informed when their requests are finished and can peruse results at their convenience.",
