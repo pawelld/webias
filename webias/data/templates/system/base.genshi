@@ -45,7 +45,7 @@ xmlns:py="http://genshi.edgewall.org/" py:strip="" py:if="not defined('nobase') 
 		<body py:attrs="select('@*')"><div id="wrap">
             <div id="header">
             	<div class="left">
-					<a href="${root}">${server}</a>
+					<a href="${'/' if root=='' else root}">${server}</a>
             	</div>
 
 				<div class="right" style="clear:right;">

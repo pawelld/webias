@@ -43,17 +43,17 @@ db_url = mysql://%%(db_login)s:%%(db_password)s@%%(db_host)s/%%(db_name)s
 # Trailing '/' are stripped from root.
 #
 
-#name = WeBIAS site
+name = WeBIAS site
 #root = /
 #server_url = http://webias.mydomain.com/%%(root)s
 css_url = %%(root)s/media/WeBIAS.css
 
-proxy = True
+proxy = False
 server_host = 0.0.0.0
-server_port = 8080
+server_port = 80
 ## server_ssl_port = 443
-## ssl_cert = /var/WeBIAS/biasdev/cert/host.crt
-## ssl_key = /var/WeBIAS/biasdev/cert/host.key
+## ssl_cert = %(server_dir)s/cert/host.crt
+## ssl_key = %(server_dir)s/cert/host.key
 ## ssl_cert_chain = ""
 
 
@@ -71,13 +71,13 @@ mime_types = {'png':'image/png','html':'text/html','htm':'text/html' ,'txt':'tex
 
 
 # allowed types are torque, slurm, batch
-#type = slurm
+#type = batch
 #sched_id = Default
 cmd_file = BIAS.cmd
 err_file = BIAS.status
 res_file = BIAS.result
 #work_dir = /var/spool/WeBIAS/
-#runner = %(server_dir)s/runner.py
+runner = %(server_dir)s/runner.py
 pid_file = /tmp/WeBIASsched-%%(sched_id)s.pid
 
 # Number of tasks that can be processed concurrently (0 = unlimited)
